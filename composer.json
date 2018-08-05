@@ -15,7 +15,8 @@
         "issues": "http://github.com/Innmind/HttpFramework/issues"
     },
     "require": {
-        "php": "~7.2"
+        "php": "~7.2",
+        "innmind/http": "^3.6"
     },
     "autoload": {
         "psr-4": {
