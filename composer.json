@@ -1,0 +1,38 @@
+{
+    "name": "innmind/http-framework",
+    "type": "library",
+    "description": "HTTP framework",
+    "keywords": ["http", "framework"],
+    "homepage": "http://github.com/Innmind/HttpFramework",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "langlade.baptiste@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/Innmind/HttpFramework/issues"
+    },
+    "require": {
+        "php": "~7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Innmind\\HttpFramework\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Innmind\\HttpFramework\\": "tests/",
+            "Fixture\\Innmind\\HttpFramework\\": "fixtures/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~7.0",
+        "giorgiosironi/eris": "^0.10.0"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --colors=always"
+    }
+}
