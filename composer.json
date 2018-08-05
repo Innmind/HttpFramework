@@ -18,7 +18,8 @@
         "php": "~7.2",
         "innmind/http": "^3.6",
         "innmind/router": "^1.0",
-        "innmind/compose": "^1.7"
+        "innmind/compose": "^1.7",
+        "symfony/dotenv": "^4.1"
     },
     "autoload": {
         "psr-4": {
