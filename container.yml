@@ -9,12 +9,16 @@ dependencies:
 
 expose:
     router: $handler.router
+    enforceHttps: $handler.enforceHttps
 
 services:
     handler:
         router Innmind\HttpFramework\Router:
             - $requestMatcher
             - $routeHandlers
+
+        enforceHttps Innmind\HttpFramework\EnforceHttps:
+            - '@decorated'
 
     defaultRequestMatcher Innmind\HttpFramework\Router\RequestMatcher:
         - $router.requestMatcher
