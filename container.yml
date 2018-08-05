@@ -1,0 +1,20 @@
+arguments:
+    routes: set<Innmind\Url\PathInterface>
+    routeHandlers: map<string, callable>
+    requestMatcher: Innmind\Router\RequestMatcher ?? $defaultRequestMatcher
+
+dependencies:
+    router @innmind/router/container.yml:
+        routes: $routes
+
+expose:
+    router: $handler.router
+
+services:
+    handler:
+        router Innmind\HttpFramework\Router:
+            - $requestMatcher
+            - $routeHandlers
+
+    defaultRequestMatcher Innmind\HttpFramework\Router\RequestMatcher:
+        - $router.requestMatcher
