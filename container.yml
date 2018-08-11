@@ -39,6 +39,8 @@ services:
         fallbacks:
             generic map<string, Innmind\HttpFramework\Authenticate\Fallback>:
                 - <Innmind\HttpAuthentication\Exception\NoAuthenticationProvided, $authentication.fallbacks.unauthorized>
+                - <Innmind\HttpAuthentication\Exception\MalformedAuthorizationHeader, $authentication.fallbacks.malformedAuthorizationHeader>
 
             empty map<string, Innmind\HttpFramework\Authenticate\Fallback>: []
             unauthorized Innmind\HttpFramework\Authenticate\Unauthorized: []
+            malformedAuthorizationHeader Innmind\HttpFramework\Authenticate\MalformedAuthorizationHeader: []
