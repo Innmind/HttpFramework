@@ -4,6 +4,7 @@ arguments:
     requestMatcher: Innmind\Router\RequestMatcher ?? $defaultRequestMatcher
     authenticator: '?Innmind\HttpAuthentication\Authenticator'
     authenticationFallbacks: map<string, Innmind\HttpFramework\Authenticate\Fallback> ?? $authentication.fallbacks.empty
+    routePatternToAuthenticate: '?string'
 
 dependencies:
     router @innmind/router/container.yml:
@@ -26,12 +27,16 @@ services:
         authenticate Innmind\HttpFramework\Authenticate:
             - '@decorated'
             - $authenticator
+            - $authentication.condition
             - $authentication.fallbacks
 
     defaultRequestMatcher Innmind\HttpFramework\Router\RequestMatcher:
         - $router.requestMatcher
 
     authentication:
+        condition Innmind\HttpFramework\Authenticate\Condition:
+            - $routePatternToAuthenticate
+
         fallbacks merge:
             - $authentication.fallbacks.generic
             - $authenticationFallbacks

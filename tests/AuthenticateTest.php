@@ -6,6 +6,7 @@ namespace Tests\Innmind\HttpFramework;
 use Innmind\HttpFramework\{
     Authenticate,
     RequestHandler,
+    Authenticate\Condition,
     Authenticate\Fallback,
 };
 use Innmind\HttpAuthentication\Authenticator;
@@ -13,6 +14,7 @@ use Innmind\Http\Message\{
     ServerRequest,
     Response,
 };
+use Innmind\Url\Url;
 use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
@@ -25,6 +27,7 @@ class AuthenticateTest extends TestCase
             new Authenticate(
                 $this->createMock(RequestHandler::class),
                 $this->createMock(Authenticator::class),
+                new Condition('~^/~'),
                 new Map('string', Fallback::class)
             )
         );
@@ -38,6 +41,7 @@ class AuthenticateTest extends TestCase
         new Authenticate(
             $this->createMock(RequestHandler::class),
             $this->createMock(Authenticator::class),
+            new Condition('~^/~'),
             new Map('int', Fallback::class)
         );
     }
@@ -50,6 +54,7 @@ class AuthenticateTest extends TestCase
         new Authenticate(
             $this->createMock(RequestHandler::class),
             $this->createMock(Authenticator::class),
+            new Condition('~^/~'),
             new Map('string', 'callable')
         );
     }
@@ -59,9 +64,14 @@ class AuthenticateTest extends TestCase
         $authenticate = new Authenticate(
             $handler = $this->createMock(RequestHandler::class),
             $authenticator = $this->createMock(Authenticator::class),
+            new Condition('~^/~'),
             new Map('string', Fallback::class)
         );
         $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->any())
+            ->method('url')
+            ->willReturn(Url::fromString('/'));
         $authenticator
             ->expects($this->once())
             ->method('__invoke')
@@ -85,10 +95,15 @@ class AuthenticateTest extends TestCase
         $authenticate = new Authenticate(
             $handler = $this->createMock(RequestHandler::class),
             $authenticator = $this->createMock(Authenticator::class),
+            new Condition('~^/~'),
             (new Map('string', Fallback::class))
                 ->put('Exception', $fallback = $this->createMock(Fallback::class))
         );
         $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->any())
+            ->method('url')
+            ->willReturn(Url::fromString('/'));
         $authenticator
             ->expects($this->once())
             ->method('__invoke')
@@ -111,9 +126,39 @@ class AuthenticateTest extends TestCase
         $authenticate = new Authenticate(
             $handler = $this->createMock(RequestHandler::class),
             $this->createMock(Authenticator::class),
+            new Condition('~^/~'),
             new Map('string', Fallback::class)
         );
         $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->any())
+            ->method('url')
+            ->willReturn(Url::fromString('/'));
+        $handler
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($request)
+            ->willReturn($expected = $this->createMock(Response::class));
+
+        $this->assertSame($expected, $authenticate($request));
+    }
+
+    public function testForwardHandlingWhenNotMathingCondition()
+    {
+        $authenticate = new Authenticate(
+            $handler = $this->createMock(RequestHandler::class),
+            $authenticator = $this->createMock(Authenticator::class),
+            new Condition('~^/foo~'),
+            new Map('string', Fallback::class)
+        );
+        $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->any())
+            ->method('url')
+            ->willReturn(Url::fromString('/'));
+        $authenticator
+            ->expects($this->never())
+            ->method('__invoke');
         $handler
             ->expects($this->once())
             ->method('__invoke')

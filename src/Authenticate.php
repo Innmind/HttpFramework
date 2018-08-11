@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Innmind\HttpFramework;
 
-use Innmind\HttpFramework\Authenticate\Fallback;
+use Innmind\HttpFramework\Authenticate\{
+    Condition,
+    Fallback,
+};
 use Innmind\HttpAuthentication\Authenticator;
 use Innmind\Http\Message\{
     ServerRequest,
@@ -15,11 +18,13 @@ final class Authenticate implements RequestHandler
 {
     private $handle;
     private $authenticate;
+    private $mustAuthenticate;
     private $fallbacks;
 
     public function __construct(
         RequestHandler $handle,
         Authenticator $authenticate,
+        Condition $condition,
         MapInterface $fallbacks
     ) {
         if (
@@ -34,6 +39,7 @@ final class Authenticate implements RequestHandler
 
         $this->handle = $handle;
         $this->authenticate = $authenticate;
+        $this->mustAuthenticate = $condition;
         $this->fallbacks = $fallbacks;
     }
 
@@ -43,16 +49,18 @@ final class Authenticate implements RequestHandler
         // should keep in memory for later usage in the current request
         // here the only goal is to make sure a user is authenticated before
         // further handling of the request
-        try {
-            ($this->authenticate)($request);
-        } catch (\Exception $e) {
-            $class = get_class($e);
+        if (($this->mustAuthenticate)($request)) {
+            try {
+                ($this->authenticate)($request);
+            } catch (\Exception $e) {
+                $class = get_class($e);
 
-            if (!$this->fallbacks->contains($class)) {
-                throw $e;
+                if (!$this->fallbacks->contains($class)) {
+                    throw $e;
+                }
+
+                return $this->fallbacks->get($class)($request, $e);
             }
-
-            return $this->fallbacks->get($class)($request, $e);
         }
 
         return ($this->handle)($request);
