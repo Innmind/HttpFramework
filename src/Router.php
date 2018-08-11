@@ -12,6 +12,10 @@ use Innmind\Http\Message\{
     Response,
     StatusCode\StatusCode,
 };
+use Innmind\Url\{
+    NullScheme,
+    NullAuthority,
+};
 use Innmind\Immutable\MapInterface;
 
 final class Router implements RequestHandler
@@ -62,7 +66,12 @@ final class Router implements RequestHandler
         return $handle(
             $request,
             $route,
-            $route->template()->extract($request->url())
+            $route->template()->extract(
+                $request
+                    ->url()
+                    ->withScheme(new NullScheme)
+                    ->withAuthority(new NullAuthority)
+            )
         );
     }
 }

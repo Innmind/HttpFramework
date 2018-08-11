@@ -129,7 +129,7 @@ class RouterTest extends TestCase
         $request
             ->expects($this->any())
             ->method('url')
-            ->willReturn(Url::fromString('/foo/hello/world'));
+            ->willReturn(Url::fromString('http://localhost:8000/foo/hello/world'));
         $matcher
             ->expects($this->once())
             ->method('__invoke')
