@@ -2,6 +2,8 @@ arguments:
     routes: set<Innmind\Url\PathInterface>
     controllers: map<string, Innmind\HttpFramework\Controller>
     requestMatcher: Innmind\Router\RequestMatcher ?? $defaultRequestMatcher
+    authenticator: '?Innmind\HttpAuthentication\Authenticator'
+    authenticationFallbacks: map<string, Innmind\HttpFramework\Authenticate\Fallback> ?? $authentication.fallbacks.empty
 
 dependencies:
     router @innmind/router/container.yml:
@@ -10,6 +12,7 @@ dependencies:
 expose:
     router: $handler.router
     enforceHttps: $handler.enforceHttps
+    authenticate: $handler.authenticate
 
 services:
     handler:
@@ -20,5 +23,22 @@ services:
         enforceHttps Innmind\HttpFramework\EnforceHttps:
             - '@decorated'
 
+        authenticate Innmind\HttpFramework\Authenticate:
+            - '@decorated'
+            - $authenticator
+            - $authentication.fallbacks
+
     defaultRequestMatcher Innmind\HttpFramework\Router\RequestMatcher:
         - $router.requestMatcher
+
+    authentication:
+        fallbacks merge:
+            - $authentication.fallbacks.generic
+            - $authenticationFallbacks
+
+        fallbacks:
+            generic map<string, Innmind\HttpFramework\Authenticate\Fallback>:
+                - <Innmind\HttpAuthentication\Exception\NoAuthenticationProvided, $authentication.fallbacks.unauthorized>
+
+            empty map<string, Innmind\HttpFramework\Authenticate\Fallback>: []
+            unauthorized Innmind\HttpFramework\Authenticate\Unauthorized: []
