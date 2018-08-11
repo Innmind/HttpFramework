@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\HttpFramework;
 
+use Innmind\HttpFramework\Controller;
 use Innmind\Router\{
     RequestMatcher,
     Route,
@@ -29,7 +30,7 @@ class ContainerTest extends TestCase
             new Path('container.yml'),
             (new Map('string', 'mixed'))
                 ->put('routes', Set::of(PathInterface::class))
-                ->put('routeHandlers', new Map('string', 'callable'))
+                ->put('controllers', new Map('string', Controller::class))
         );
 
         $request = $this->createMock(ServerRequest::class);
@@ -46,7 +47,7 @@ class ContainerTest extends TestCase
             new Path('container.yml'),
             (new Map('string', 'mixed'))
                 ->put('routes', Set::of(PathInterface::class))
-                ->put('routeHandlers', new Map('string', 'callable'))
+                ->put('controllers', new Map('string', Controller::class))
                 ->put('requestMatcher', new class implements RequestMatcher {
                     public function __invoke(ServerRequest $request): Route {
                         return Route::of(new Name('foo'), Str::of('GET /'));

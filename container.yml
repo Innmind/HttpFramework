@@ -1,6 +1,6 @@
 arguments:
     routes: set<Innmind\Url\PathInterface>
-    routeHandlers: map<string, callable>
+    controllers: map<string, Innmind\HttpFramework\Controller>
     requestMatcher: Innmind\Router\RequestMatcher ?? $defaultRequestMatcher
 
 dependencies:
@@ -15,7 +15,7 @@ services:
     handler:
         router Innmind\HttpFramework\Router:
             - $requestMatcher
-            - $routeHandlers
+            - $controllers
 
         enforceHttps Innmind\HttpFramework\EnforceHttps:
             - '@decorated'

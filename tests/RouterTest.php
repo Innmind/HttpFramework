@@ -6,7 +6,7 @@ namespace Tests\Innmind\HttpFramework;
 use Innmind\HttpFramework\{
     Router,
     RequestHandler,
-    Exception\UnexpectedValueException,
+    Controller,
 };
 use Innmind\Router\{
     RequestMatcher,
@@ -22,6 +22,7 @@ use Innmind\Http\Message\{
 use Innmind\Url\Url;
 use Innmind\Filesystem\Stream\StringStream;
 use Innmind\Immutable\{
+    MapInterface,
     Map,
     Str,
 };
@@ -35,7 +36,7 @@ class RouterTest extends TestCase
             RequestHandler::class,
             new Router(
                 $this->createMock(RequestMatcher::class),
-                new Map('string', 'callable')
+                new Map('string', Controller::class)
             )
         );
     }
@@ -43,18 +44,18 @@ class RouterTest extends TestCase
     public function testThrowWhenInvalidHandlersKeyType()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<string, callable>');
+        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<string, Innmind\HttpFramework\Controller>');
 
         new Router(
             $this->createMock(RequestMatcher::class),
-            new Map('int', 'callable')
+            new Map('int', Controller::class)
         );
     }
 
     public function testThrowWhenInvalidHandlersValueType()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<string, callable>');
+        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<string, Innmind\HttpFramework\Controller>');
 
         new Router(
             $this->createMock(RequestMatcher::class),
@@ -66,7 +67,7 @@ class RouterTest extends TestCase
     {
         $route = new Router(
             $matcher = $this->createMock(RequestMatcher::class),
-            new Map('string', 'callable')
+            new Map('string', Controller::class)
         );
         $request = $this->createMock(ServerRequest::class);
         $matcher
@@ -85,7 +86,7 @@ class RouterTest extends TestCase
     {
         $route = new Router(
             $matcher = $this->createMock(RequestMatcher::class),
-            new Map('string', 'callable')
+            new Map('string', Controller::class)
         );
         $request = $this->createMock(ServerRequest::class);
         $matcher
@@ -100,43 +101,29 @@ class RouterTest extends TestCase
         $this->assertSame(501, $response->statusCode()->value());
     }
 
-    public function testThrowWhenHandlerDoesntReturnResponse()
-    {
-        $route = new Router(
-            $matcher = $this->createMock(RequestMatcher::class),
-            (new Map('string', 'callable'))
-                ->put('foo', function(){})
-        );
-        $request = $this->createMock(ServerRequest::class);
-        $request
-            ->expects($this->any())
-            ->method('url')
-            ->willReturn(Url::fromString('/foo'));
-        $matcher
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($request)
-            ->willReturn(Route::of(new Name('foo'), Str::of('GET /foo')));
-
-        $this->expectException(UnexpectedValueException::class);
-
-        $route($request);
-    }
-
     public function testInvokation()
     {
         $route = new Router(
             $matcher = $this->createMock(RequestMatcher::class),
-            (new Map('string', 'callable'))
-                ->put('foo', function(Name $route, string $baz, string $bar, ServerRequest $request): Response {
-                    return new Response\Response(
-                        $code = StatusCode::of('OK'),
-                        $code->associatedReasonPhrase(),
-                        $request->protocolVersion(),
-                        null,
-                        new StringStream("$bar $baz from $route")
-                    );
-                })
+            (new Map('string', Controller::class))
+                ->put(
+                    'foo',
+                    new class implements Controller {
+                        public function __invoke(ServerRequest $request, Route $route, MapInterface $arguments): Response
+                        {
+                            $bar = $arguments->get('bar');
+                            $baz = $arguments->get('baz');
+
+                            return new Response\Response(
+                                $code = StatusCode::of('OK'),
+                                $code->associatedReasonPhrase(),
+                                $request->protocolVersion(),
+                                null,
+                                new StringStream("$bar $baz from {$route->name()}")
+                            );
+                        }
+                    }
+                )
         );
         $request = $this->createMock(ServerRequest::class);
         $request

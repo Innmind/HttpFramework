@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Innmind\HttpFramework;
 
-use Innmind\HttpFramework\Exception\UnexpectedValueException;
 use Innmind\Router\{
     RequestMatcher,
     Exception\NoMatchingRouteFound,
@@ -13,30 +12,29 @@ use Innmind\Http\Message\{
     Response,
     StatusCode\StatusCode,
 };
-use Innmind\Immutable\{
-    MapInterface,
-    Map,
-    Sequence,
-};
+use Innmind\Immutable\MapInterface;
 
 final class Router implements RequestHandler
 {
     private $match;
-    private $handlers;
+    private $controllers;
 
     public function __construct(
         RequestMatcher $match,
-        MapInterface $handlers
+        MapInterface $controllers
     ) {
         if (
-            (string) $handlers->keyType() !== 'string' ||
-            (string) $handlers->valueType() !== 'callable'
+            (string) $controllers->keyType() !== 'string' ||
+            (string) $controllers->valueType() !== Controller::class
         ) {
-            throw new \TypeError('Argument 2 must be of type MapInterface<string, callable>');
+            throw new \TypeError(sprintf(
+                'Argument 2 must be of type MapInterface<string, %s>',
+                Controller::class
+            ));
         }
 
         $this->match = $match;
-        $this->handlers = $handlers;
+        $this->controllers = $controllers;
     }
 
     public function __invoke(ServerRequest $request): Response
@@ -51,7 +49,7 @@ final class Router implements RequestHandler
             );
         }
 
-        if (!$this->handlers->contains((string) $route->name())) {
+        if (!$this->controllers->contains((string) $route->name())) {
             return new Response\Response(
                 $code = StatusCode::of('NOT_IMPLEMENTED'),
                 $code->associatedReasonPhrase(),
@@ -59,42 +57,12 @@ final class Router implements RequestHandler
             );
         }
 
-        $handle = $this->handlers->get((string) $route->name());
-        $variables = $route
-            ->template()
-            ->extract($request->url())
-            ->reduce(
-                new Map('string', 'mixed'),
-                static function(MapInterface $variables, string $variable, string $value): MapInterface {
-                    return $variables->put(
-                        $variable,
-                        $value
-                    );
-                }
-            )
-            ->put('route', $route->name())
-            ->put('request', $request);
+        $handle = $this->controllers->get((string) $route->name());
 
-        $arguments = $this->computeArguments($handle, $variables);
-
-        $response = $handle(...$arguments);
-
-        if (!$response instanceof Response) {
-            throw new UnexpectedValueException;
-        }
-
-        return $response;
-    }
-
-    private function computeArguments(callable $handler, MapInterface $variables): Sequence
-    {
-        $refl = new \ReflectionFunction(\Closure::fromCallable($handler));
-        $arguments = new Sequence;
-
-        foreach ($refl->getParameters() as $parameter) {
-            $arguments = $arguments->add($variables[$parameter->name] ?? null);
-        }
-
-        return $arguments;
+        return $handle(
+            $request,
+            $route,
+            $route->template()->extract($request->url())
+        );
     }
 }
