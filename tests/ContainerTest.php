@@ -6,6 +6,7 @@ namespace Tests\Innmind\HttpFramework;
 use Innmind\HttpFramework\Controller;
 use Innmind\Router\{
     RequestMatcher,
+    UrlGenerator,
     Route,
     Route\Name,
 };
@@ -39,6 +40,7 @@ class ContainerTest extends TestCase
             404,
             $container->get('router')($request)->statusCode()->value()
         );
+        $this->assertInstanceOf(UrlGenerator::class, $container->get('urlGenerator'));
     }
 
     public function testOverrideRequestMatcher()
