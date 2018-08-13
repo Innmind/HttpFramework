@@ -3,11 +3,15 @@ declare(strict_types = 1);
 
 namespace Innmind\HttpFramework\Authenticate;
 
-use Innmind\Http\Message\{
-    ServerRequest,
-    Response,
-    StatusCode\StatusCode,
+use Innmind\Http\{
+    Message\ServerRequest,
+    Message\Response,
+    Message\StatusCode\StatusCode,
+    Headers\Headers,
+    Header\WWWAuthenticate,
+    Header\WWWAuthenticateValue,
 };
+use Innmind\Url\Authority\NullUserInformation;
 
 final class Unauthorized implements Fallback
 {
@@ -16,7 +20,18 @@ final class Unauthorized implements Fallback
         return new Response\Response(
             $code = StatusCode::of('UNAUTHORIZED'),
             $code->associatedReasonPhrase(),
-            $request->protocolVersion()
+            $request->protocolVersion(),
+            Headers::of(
+                new WWWAuthenticate(
+                    new WWWAuthenticateValue(
+                        'Basic',
+                        (string) $request
+                            ->url()
+                            ->authority()
+                            ->withUserInformation(new NullUserInformation)
+                    )
+                )
+            )
         );
     }
 }
