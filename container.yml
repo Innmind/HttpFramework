@@ -12,6 +12,7 @@ dependencies:
 
 expose:
     router: $handler.router
+    urlGenerator: $urlGenerator
     enforceHttps: $handler.enforceHttps
     authenticate: $handler.authenticate
 
@@ -32,6 +33,9 @@ services:
 
     defaultRequestMatcher Innmind\HttpFramework\Router\RequestMatcher:
         - $router.requestMatcher
+
+    urlGenerator Innmind\HttpFramework\Router\UrlGenerator:
+        - $router.urlGenerator
 
     authentication:
         condition Innmind\HttpFramework\Authenticate\Condition:
