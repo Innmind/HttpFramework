@@ -4,6 +4,10 @@ declare(strict_types = 1);
 namespace Innmind\HttpFramework\Authenticate;
 
 use Innmind\Http\Message\ServerRequest;
+use Innmind\Url\{
+    NullScheme,
+    NullAuthority,
+};
 use Innmind\Immutable\Str;
 
 final class Condition
@@ -17,6 +21,11 @@ final class Condition
 
     public function __invoke(ServerRequest $request): bool
     {
-        return Str::of((string) $request->url())->matches($this->regex);
+        $url = (string) $request
+            ->url()
+            ->withScheme(new NullScheme)
+            ->withAuthority(new NullAuthority);
+
+        return Str::of($url)->matches($this->regex);
     }
 }
