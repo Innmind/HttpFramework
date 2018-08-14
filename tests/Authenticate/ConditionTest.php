@@ -19,7 +19,7 @@ class ConditionTest extends TestCase
             ->method('url')
             ->will($this->onConsecutiveCalls(
                 Url::fromString('/foo'),
-                Url::fromString('/bar'),
+                Url::fromString('http://localhost/bar'),
                 Url::fromString('/baz'),
                 Url::fromString('/foobar')
             ));
