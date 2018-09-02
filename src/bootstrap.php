@@ -3,16 +3,18 @@ declare(strict_types = 1);
 
 namespace Innmind\HttpFramework;
 
-use Innmind\HttpFramework\{
-    Authenticate\Condition,
-    Authenticate\Fallback,
-    Authenticate\Unauthorized,
-    Authenticate\MalformedAuthorizationHeader,
+use Innmind\HttpFramework\Authenticate\{
+    Condition,
+    Fallback,
+    Unauthorized,
+    MalformedAuthorizationHeader,
+};
+use Innmind\Router\RequestMatcher;
+use Innmind\HttpAuthentication\{
+    Authenticator,
     Exception\NoAuthenticationProvided,
     Exception\MalformedAuthorizationHeader as MalformedAuthorizationHeaderException,
 };
-use Innmind\Router\RequestMatcher;
-use Innmind\HttpAuthentication\Authenticator;
 use Innmind\Immutable\{
     MapInterface,
     Map,
