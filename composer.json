@@ -18,7 +18,6 @@
         "php": "~7.2",
         "innmind/http": "^3.8",
         "innmind/router": "^1.0",
-        "innmind/compose": "^1.7",
         "symfony/dotenv": "^4.1",
         "innmind/http-authentication": "^1.1"
     },
@@ -37,9 +36,7 @@
     "require-dev": {
         "phpunit/phpunit": "~7.0",
         "giorgiosironi/eris": "^0.10.0",
-        "mnapoli/silly": "^1.7",
-        "innmind/server-control": "^2.5",
-        "innmind/graphviz": "^1.1"
+        "innmind/compose": "^1.7"
     },
     "scripts": {
         "test": "vendor/bin/phpunit --colors=always"
