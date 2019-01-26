@@ -12,9 +12,22 @@ use Innmind\HttpFramework\{
     Authenticate,
     Authenticate\Condition,
 };
-use Innmind\Router\RequestMatcher;
+use Innmind\Router\{
+    RequestMatcher,
+    Route,
+};
 use Innmind\HttpAuthentication\Authenticator;
-use Innmind\Immutable\Map;
+use Innmind\Rest\Server\{
+    Gateway,
+    Definition\Directory,
+};
+use Innmind\Immutable\{
+    MapInterface,
+    Map,
+    SetInterface,
+    Set,
+    Str,
+};
 use PHPUnit\Framework\TestCase;
 
 class BootstrapTest extends TestCase
@@ -46,5 +59,19 @@ class BootstrapTest extends TestCase
             AUthenticate::class,
             $authenticate($this->createMock(RequestHandler::class))
         );
+
+        $this->assertInternalType('callable', $handlers['bridge']['rest_server']);
+        $rest = $handlers['bridge']['rest_server'](
+            Map::of('string', Gateway::class),
+            Directory::of('api', Set::of(Directory::class)),
+            Route::of(new Route\Name('capabilities'), Str::of('OPTIONS /\*'))
+        );
+        $this->assertInternalType('array', $rest);
+        $this->assertInstanceOf(SetInterface::class, $rest['routes']);
+        $this->assertSame(Route::class, (string) $rest['routes']->type());
+        $this->assertInstanceOf(MapInterface::class, $rest['controllers']);
+        $this->assertSame('string', (string) $rest['controllers']->keyType());
+        $this->assertSame(Controller::class, (string) $rest['controllers']->valueType());
+        $this->assertTrue($rest['controllers']->contains('capabilities'));
     }
 }

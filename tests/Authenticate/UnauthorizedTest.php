@@ -36,7 +36,7 @@ class UnauthorizedTest extends TestCase
         $this->assertSame(401, $response->statusCode()->value());
         $this->assertTrue($response->headers()->has('WWW-Authenticate'));
         $this->assertSame(
-            'WWW-Authenticate : Basic realm=sub.example.com:8000',
+            'WWW-Authenticate: Basic realm=sub.example.com:8000',
             (string) $response->headers()->get('WWW-Authenticate')
         );
     }
