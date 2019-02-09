@@ -19,12 +19,16 @@ use Symfony\Component\Dotenv\Dotenv;
 final class Environment
 {
     /**
+     * @deprecated
+     *
      * @return MapInterface<string, mixed>
      */
     public static function of(
         string $envFile,
         RequestEnvironment $environment
     ): MapInterface {
+        @trigger_error('Use the `env` function instead', E_USER_DEPRECATED);
+
         $arguments = new Map('string', 'mixed');
 
         if (\file_exists($envFile)) {
