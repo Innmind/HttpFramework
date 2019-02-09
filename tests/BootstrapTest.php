@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Tests\Innmind\HttpFramework;
 
-use function Innmind\HttpFramework\bootstrap;
+use function Innmind\HttpFramework\{
+    bootstrap,
+    env,
+};
 use Innmind\HttpFramework\{
     Router,
     Controller,
@@ -20,6 +23,12 @@ use Innmind\HttpAuthentication\Authenticator;
 use Innmind\Rest\Server\{
     Gateway,
     Definition\Directory,
+};
+use Innmind\Http\Message\Environment\Environment;
+use Innmind\Filesystem\{
+    Adapter\MemoryAdapter,
+    File\File,
+    Stream\StringStream,
 };
 use Innmind\Immutable\{
     MapInterface,
@@ -73,5 +82,51 @@ class BootstrapTest extends TestCase
         $this->assertSame('string', (string) $rest['controllers']->keyType());
         $this->assertSame(Controller::class, (string) $rest['controllers']->valueType());
         $this->assertTrue($rest['controllers']->contains('capabilities'));
+    }
+
+    public function testEnv()
+    {
+        $env = env(
+            new Environment(
+                Map::of('string', 'scalar')
+                    ('FOO', 'foo')
+                    ('BAZ', 'baz')
+            ),
+            new MemoryAdapter
+        );
+
+        $this->assertInstanceOf(MapInterface::class, $env);
+        $this->assertSame('string', (string) $env->keyType());
+        $this->assertSame('scalar', (string) $env->valueType());
+        $this->assertCount(2, $env);
+        $this->assertSame('foo', $env->get('foo'));
+        $this->assertSame('baz', $env->get('baz'));
+    }
+
+    public function testEnvWithDotEnvFile()
+    {
+        $config = new MemoryAdapter;
+        $config->add(new File(
+            '.env',
+            new StringStream("BAR=42\nFOO_BAR=foobaz")
+        ));
+
+        $env = env(
+            new Environment(
+                Map::of('string', 'scalar')
+                    ('FOO', 'foo')
+                    ('BAZ', 'baz')
+            ),
+            $config
+        );
+
+        $this->assertInstanceOf(MapInterface::class, $env);
+        $this->assertSame('string', (string) $env->keyType());
+        $this->assertSame('scalar', (string) $env->valueType());
+        $this->assertCount(4, $env);
+        $this->assertSame('foo', $env->get('foo'));
+        $this->assertSame('baz', $env->get('baz'));
+        $this->assertSame('42', $env->get('bar'));
+        $this->assertSame('foobaz', $env->get('fooBar'));
     }
 }

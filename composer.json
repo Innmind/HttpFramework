@@ -20,7 +20,8 @@
         "innmind/router": "^1.0",
         "symfony/dotenv": "^4.1",
         "innmind/http-authentication": "^1.1",
-        "innmind/rest-server": "^7.0"
+        "innmind/rest-server": "^7.0",
+        "innmind/filesystem": "^3.3"
     },
     "autoload": {
         "psr-4": {
