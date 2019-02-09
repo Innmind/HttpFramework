@@ -22,11 +22,16 @@ use Innmind\Rest\Server\{
     Definition\Directory,
     Routing\Prefix,
 };
+use Innmind\Http\Message\Environment as RequestEnvironment;
+use Innmind\Filesystem\Adapter;
 use Innmind\Immutable\{
     MapInterface,
     Map,
+    Str,
+    Pair,
 };
 use function Innmind\Rest\Server\bootstrap as rest;
+use Symfony\Component\Dotenv\Dotenv;
 
 function bootstrap(): array
 {
@@ -75,4 +80,28 @@ function bootstrap(): array
             },
         ],
     ];
+}
+
+/**
+ * @return MapInterface<string, scalar>
+ */
+function env(RequestEnvironment $env, Adapter $config): MapInterface
+{
+    $env = \iterator_to_array($env);
+    $env = Map::of('string', 'scalar', \array_keys($env), \array_values($env));
+
+    if ($config->has('.env')) {
+        $dot = (new Dotenv)->parse((string) $config->get('.env')->content());
+
+        foreach ($dot as $key => $value) {
+            $env = $env->put($key, $value);
+        }
+    }
+
+    return $env->map(static function(string $name, $value): Pair {
+        return new Pair(
+            (string) Str::of($name)->toLower()->camelize()->lcfirst(),
+            $value
+        );
+    });;
 }
