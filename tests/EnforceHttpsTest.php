@@ -32,7 +32,7 @@ class EnforceHttpsTest extends TestCase
         );
         $request = $this->createMock(ServerRequest::class);
         $request
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('url')
             ->willReturn(Url::of('http://localhost/'));
         $request
@@ -43,9 +43,15 @@ class EnforceHttpsTest extends TestCase
             ->expects($this->never())
             ->method('__invoke');
 
+        $response = $handle($request);
+
         $this->assertSame(
             308,
-            $handle($request)->statusCode()->value()
+            $response->statusCode()->value()
+        );
+        $this->assertSame(
+            'Location: https://localhost/',
+            $response->headers()->get('location')->toString(),
         );
     }
 
