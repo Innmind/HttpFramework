@@ -12,7 +12,7 @@ use Innmind\Immutable\Str;
 
 final class Condition
 {
-    private $regex;
+    private string $regex;
 
     public function __construct(string $regex)
     {

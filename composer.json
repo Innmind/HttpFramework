@@ -15,7 +15,7 @@
         "issues": "http://github.com/Innmind/HttpFramework/issues"
     },
     "require": {
-        "php": "~7.2",
+        "php": "~7.4",
         "innmind/http": "^3.8",
         "innmind/router": "^1.0",
         "symfony/dotenv": "^4.1",

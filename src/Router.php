@@ -20,8 +20,8 @@ use Innmind\Immutable\MapInterface;
 
 final class Router implements RequestHandler
 {
-    private $match;
-    private $controllers;
+    private RequestMatcher $match;
+    private MapInterface $controllers;
 
     public function __construct(
         RequestMatcher $match,

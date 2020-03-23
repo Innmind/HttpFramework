@@ -14,7 +14,7 @@ use Innmind\Immutable\MapInterface;
 
 final class CapabilitiesController implements Controller
 {
-    private $handle;
+    private RestCapabilities $handle;
 
     public function __construct(RestCapabilities $handle)
     {

@@ -19,8 +19,8 @@ use function Innmind\Immutable\assertMap;
 
 final class BridgeController implements Controller
 {
-    private $handle;
-    private $definitions;
+    private RestController $handle;
+    private MapInterface $definitions;
 
     public function __construct(RestController $handle, MapInterface $definitions)
     {

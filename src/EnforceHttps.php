@@ -11,7 +11,7 @@ use Innmind\Http\Message\{
 
 final class EnforceHttps implements RequestHandler
 {
-    private $handle;
+    private RequestHandler $handle;
 
     public function __construct(RequestHandler $handle)
     {

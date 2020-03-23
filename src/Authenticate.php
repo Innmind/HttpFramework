@@ -16,10 +16,10 @@ use Innmind\Immutable\MapInterface;
 
 final class Authenticate implements RequestHandler
 {
-    private $handle;
-    private $authenticate;
-    private $mustAuthenticate;
-    private $fallbacks;
+    private RequestHandler $handle;
+    private Authenticator $authenticate;
+    private Condition $mustAuthenticate;
+    private MapInterface $fallbacks;
 
     public function __construct(
         RequestHandler $handle,
