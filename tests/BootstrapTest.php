@@ -45,7 +45,7 @@ class BootstrapTest extends TestCase
     {
         $handlers = bootstrap();
 
-        $this->assertInternalType('callable', $handlers['router']);
+        $this->assertIsCallable($handlers['router']);
         $this->assertInstanceOf(
             Router::class,
             $handlers['router'](
@@ -53,29 +53,29 @@ class BootstrapTest extends TestCase
                 new Map('string', Controller::class)
             )
         );
-        $this->assertInternalType('callable', $handlers['enforce_https']);
+        $this->assertIsCallable($handlers['enforce_https']);
         $this->assertInstanceOf(
             EnforceHttps::class,
             $handlers['enforce_https']($this->createMock(RequestHandler::class))
         );
-        $this->assertInternalType('callable', $handlers['authenticate']);
+        $this->assertIsCallable($handlers['authenticate']);
         $authenticate = $handlers['authenticate'](
             $this->createMock(Authenticator::class),
             new Condition('~^/~')
         );
-        $this->assertInternalType('callable', $authenticate);
+        $this->assertIsCallable($authenticate);
         $this->assertInstanceOf(
             AUthenticate::class,
             $authenticate($this->createMock(RequestHandler::class))
         );
 
-        $this->assertInternalType('callable', $handlers['bridge']['rest_server']);
+        $this->assertIsCallable($handlers['bridge']['rest_server']);
         $rest = $handlers['bridge']['rest_server'](
             Map::of('string', Gateway::class),
             Directory::of('api', Set::of(Directory::class)),
             Route::of(new Route\Name('capabilities'), Str::of('OPTIONS /\*'))
         );
-        $this->assertInternalType('array', $rest);
+        $this->assertIsArray($rest);
         $this->assertInstanceOf(SetInterface::class, $rest['routes']);
         $this->assertSame(Route::class, (string) $rest['routes']->type());
         $this->assertInstanceOf(MapInterface::class, $rest['controllers']);
