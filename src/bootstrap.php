@@ -103,5 +103,5 @@ function env(RequestEnvironment $env, Adapter $config): MapInterface
             (string) Str::of($name)->toLower()->camelize()->lcfirst(),
             $value
         );
-    });;
+    });
 }
