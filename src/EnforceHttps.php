@@ -3,15 +3,18 @@ declare(strict_types = 1);
 
 namespace Innmind\HttpFramework;
 
-use Innmind\Http\Message\{
-    ServerRequest,
-    Response,
-    StatusCode\StatusCode,
+use Innmind\Http\{
+    Message\ServerRequest,
+    Message\Response,
+    Message\StatusCode,
+    Headers,
+    Header\Location,
 };
+use Innmind\Url\Scheme;
 
 final class EnforceHttps implements RequestHandler
 {
-    private $handle;
+    private RequestHandler $handle;
 
     public function __construct(RequestHandler $handle)
     {
@@ -20,11 +23,18 @@ final class EnforceHttps implements RequestHandler
 
     public function __invoke(ServerRequest $request): Response
     {
-        if ((string) $request->url()->scheme() !== 'https') {
+        if ($request->url()->scheme()->toString() !== 'https') {
             return new Response\Response(
                 $code = StatusCode::of('PERMANENTLY_REDIRECT'),
                 $code->associatedReasonPhrase(),
-                $request->protocolVersion()
+                $request->protocolVersion(),
+                Headers::of(
+                    Location::of(
+                        $request
+                            ->url()
+                            ->withScheme(Scheme::of('https')),
+                    ),
+                ),
             );
         }
 

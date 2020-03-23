@@ -18,10 +18,10 @@ class ConditionTest extends TestCase
             ->expects($this->exactly(4))
             ->method('url')
             ->will($this->onConsecutiveCalls(
-                Url::fromString('/foo'),
-                Url::fromString('http://localhost/bar'),
-                Url::fromString('/baz'),
-                Url::fromString('/foobar')
+                Url::of('/foo'),
+                Url::of('http://localhost/bar'),
+                Url::of('/baz'),
+                Url::of('/foobar')
             ));
 
         $this->assertTrue($condition($request));

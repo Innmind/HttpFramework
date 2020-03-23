@@ -12,30 +12,27 @@ use Innmind\Http\Message\{
     ServerRequest,
     Response,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
+use function Innmind\Immutable\assertMap;
 
 final class Authenticate implements RequestHandler
 {
-    private $handle;
-    private $authenticate;
-    private $mustAuthenticate;
-    private $fallbacks;
+    private RequestHandler $handle;
+    private Authenticator $authenticate;
+    private Condition $mustAuthenticate;
+    /** @var Map<string, Fallback> */
+    private Map $fallbacks;
 
+    /**
+     * @param Map<string, Fallback> $fallbacks
+     */
     public function __construct(
         RequestHandler $handle,
         Authenticator $authenticate,
         Condition $condition,
-        MapInterface $fallbacks
+        Map $fallbacks
     ) {
-        if (
-            (string) $fallbacks->keyType() !== 'string' ||
-            (string) $fallbacks->valueType() !== Fallback::class
-        ) {
-            throw new \TypeError(sprintf(
-                'Argument 3 must be of type MapInterface<string, %s>',
-                Fallback::class
-            ));
-        }
+        assertMap('string', Fallback::class, $fallbacks, 3);
 
         $this->handle = $handle;
         $this->authenticate = $authenticate;

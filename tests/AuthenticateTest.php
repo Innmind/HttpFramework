@@ -28,7 +28,7 @@ class AuthenticateTest extends TestCase
                 $this->createMock(RequestHandler::class),
                 $this->createMock(Authenticator::class),
                 new Condition('~^/~'),
-                new Map('string', Fallback::class)
+                Map::of('string', Fallback::class)
             )
         );
     }
@@ -36,26 +36,26 @@ class AuthenticateTest extends TestCase
     public function testThrowWhenInvalidFallbacksKey()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 3 must be of type MapInterface<string, Innmind\HttpFramework\Authenticate\Fallback>');
+        $this->expectExceptionMessage('Argument 3 must be of type Map<string, Innmind\HttpFramework\Authenticate\Fallback>');
 
         new Authenticate(
             $this->createMock(RequestHandler::class),
             $this->createMock(Authenticator::class),
             new Condition('~^/~'),
-            new Map('int', Fallback::class)
+            Map::of('int', Fallback::class)
         );
     }
 
     public function testThrowWhenInvalidFallbacksValue()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 3 must be of type MapInterface<string, Innmind\HttpFramework\Authenticate\Fallback>');
+        $this->expectExceptionMessage('Argument 3 must be of type Map<string, Innmind\HttpFramework\Authenticate\Fallback>');
 
         new Authenticate(
             $this->createMock(RequestHandler::class),
             $this->createMock(Authenticator::class),
             new Condition('~^/~'),
-            new Map('string', 'callable')
+            Map::of('string', 'callable')
         );
     }
 
@@ -65,13 +65,13 @@ class AuthenticateTest extends TestCase
             $handler = $this->createMock(RequestHandler::class),
             $authenticator = $this->createMock(Authenticator::class),
             new Condition('~^/~'),
-            new Map('string', Fallback::class)
+            Map::of('string', Fallback::class)
         );
         $request = $this->createMock(ServerRequest::class);
         $request
             ->expects($this->any())
             ->method('url')
-            ->willReturn(Url::fromString('/'));
+            ->willReturn(Url::of('/'));
         $authenticator
             ->expects($this->once())
             ->method('__invoke')
@@ -96,14 +96,14 @@ class AuthenticateTest extends TestCase
             $handler = $this->createMock(RequestHandler::class),
             $authenticator = $this->createMock(Authenticator::class),
             new Condition('~^/~'),
-            (new Map('string', Fallback::class))
+            (Map::of('string', Fallback::class))
                 ->put('Exception', $fallback = $this->createMock(Fallback::class))
         );
         $request = $this->createMock(ServerRequest::class);
         $request
             ->expects($this->any())
             ->method('url')
-            ->willReturn(Url::fromString('/'));
+            ->willReturn(Url::of('/'));
         $authenticator
             ->expects($this->once())
             ->method('__invoke')
@@ -127,13 +127,13 @@ class AuthenticateTest extends TestCase
             $handler = $this->createMock(RequestHandler::class),
             $this->createMock(Authenticator::class),
             new Condition('~^/~'),
-            new Map('string', Fallback::class)
+            Map::of('string', Fallback::class)
         );
         $request = $this->createMock(ServerRequest::class);
         $request
             ->expects($this->any())
             ->method('url')
-            ->willReturn(Url::fromString('/'));
+            ->willReturn(Url::of('/'));
         $handler
             ->expects($this->once())
             ->method('__invoke')
@@ -149,13 +149,13 @@ class AuthenticateTest extends TestCase
             $handler = $this->createMock(RequestHandler::class),
             $authenticator = $this->createMock(Authenticator::class),
             new Condition('~^/foo~'),
-            new Map('string', Fallback::class)
+            Map::of('string', Fallback::class)
         );
         $request = $this->createMock(ServerRequest::class);
         $request
             ->expects($this->any())
             ->method('url')
-            ->willReturn(Url::fromString('/'));
+            ->willReturn(Url::of('/'));
         $authenticator
             ->expects($this->never())
             ->method('__invoke');

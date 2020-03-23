@@ -35,7 +35,7 @@ class BridgeControllerTest extends TestCase
             Controller::class,
             new BridgeController(
                 $this->createMock(RestController::class),
-                new Map(Route::class, HttpResource::class)
+                Map::of(Route::class, HttpResource::class)
             )
        );
     }
@@ -43,22 +43,22 @@ class BridgeControllerTest extends TestCase
     public function testThrowWhenInvalidDefinitionMapKey()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<Innmind\Router\Route, Innmind\Rest\Server\Definition\HttpResource>');
+        $this->expectExceptionMessage('Argument 2 must be of type Map<Innmind\Router\Route, Innmind\Rest\Server\Definition\HttpResource>');
 
         new BridgeController(
             $this->createMock(RestController::class),
-            new Map('string', HttpResource::class)
+            Map::of('string', HttpResource::class)
         );
     }
 
     public function testThrowWhenInvalidDefinitionMapValue()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<Innmind\Router\Route, Innmind\Rest\Server\Definition\HttpResource>');
+        $this->expectExceptionMessage('Argument 2 must be of type Map<Innmind\Router\Route, Innmind\Rest\Server\Definition\HttpResource>');
 
         new BridgeController(
             $this->createMock(RestController::class),
-            new Map(Route::class, 'callable')
+            Map::of(Route::class, 'callable')
         );
     }
 
@@ -93,7 +93,7 @@ class BridgeControllerTest extends TestCase
         $this->assertSame($expected, $handle(
             $request,
             $route,
-            new Map('string', 'string')
+            Map::of('string', 'string')
         ));
     }
 

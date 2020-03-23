@@ -10,32 +10,23 @@ use Innmind\Router\{
 use Innmind\Http\Message\{
     ServerRequest,
     Response,
-    StatusCode\StatusCode,
+    StatusCode,
 };
-use Innmind\Url\{
-    NullScheme,
-    NullAuthority,
-};
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
+use function Innmind\Immutable\assertMap;
 
 final class Router implements RequestHandler
 {
-    private $match;
-    private $controllers;
+    private RequestMatcher $match;
+    /** @var Map<string, Controller> */
+    private Map $controllers;
 
-    public function __construct(
-        RequestMatcher $match,
-        MapInterface $controllers
-    ) {
-        if (
-            (string) $controllers->keyType() !== 'string' ||
-            (string) $controllers->valueType() !== Controller::class
-        ) {
-            throw new \TypeError(sprintf(
-                'Argument 2 must be of type MapInterface<string, %s>',
-                Controller::class
-            ));
-        }
+    /**
+     * @param Map<string, Controller> $controllers
+     */
+    public function __construct(RequestMatcher $match, Map $controllers)
+    {
+        assertMap('string', Controller::class, $controllers, 2);
 
         $this->match = $match;
         $this->controllers = $controllers;
@@ -49,19 +40,19 @@ final class Router implements RequestHandler
             return new Response\Response(
                 $code = StatusCode::of('NOT_FOUND'),
                 $code->associatedReasonPhrase(),
-                $request->protocolVersion()
+                $request->protocolVersion(),
             );
         }
 
-        if (!$this->controllers->contains((string) $route->name())) {
+        if (!$this->controllers->contains($route->name()->toString())) {
             return new Response\Response(
                 $code = StatusCode::of('NOT_IMPLEMENTED'),
                 $code->associatedReasonPhrase(),
-                $request->protocolVersion()
+                $request->protocolVersion(),
             );
         }
 
-        $handle = $this->controllers->get((string) $route->name());
+        $handle = $this->controllers->get($route->name()->toString());
 
         return $handle(
             $request,
@@ -69,9 +60,9 @@ final class Router implements RequestHandler
             $route->template()->extract(
                 $request
                     ->url()
-                    ->withScheme(new NullScheme)
-                    ->withAuthority(new NullAuthority)
-            )
+                    ->withoutScheme()
+                    ->withoutAuthority(),
+            ),
         );
     }
 }

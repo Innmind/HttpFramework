@@ -6,12 +6,11 @@ namespace Innmind\HttpFramework\Authenticate;
 use Innmind\Http\{
     Message\ServerRequest,
     Message\Response,
-    Message\StatusCode\StatusCode,
-    Headers\Headers,
+    Message\StatusCode,
+    Headers,
     Header\WWWAuthenticate,
     Header\WWWAuthenticateValue,
 };
-use Innmind\Url\Authority\NullUserInformation;
 
 final class Unauthorized implements Fallback
 {
@@ -25,13 +24,14 @@ final class Unauthorized implements Fallback
                 new WWWAuthenticate(
                     new WWWAuthenticateValue(
                         'Basic',
-                        (string) $request
+                        $request
                             ->url()
                             ->authority()
-                            ->withUserInformation(new NullUserInformation)
-                    )
-                )
-            )
+                            ->withoutUserInformation()
+                            ->toString(),
+                    ),
+                ),
+            ),
         );
     }
 }

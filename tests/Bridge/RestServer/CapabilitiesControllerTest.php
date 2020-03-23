@@ -12,9 +12,10 @@ use Innmind\Rest\Server\{
     Routing\Routes,
     Router,
 };
-use Innmind\Http\Message\{
-    ServerRequest,
-    Response,
+use Innmind\Http\{
+    Message\ServerRequest,
+    Message\Response,
+    ProtocolVersion,
 };
 use Innmind\Router\Route;
 use Innmind\Immutable\{
@@ -46,11 +47,16 @@ class CapabilitiesControllerTest extends TestCase
                 new Router($routes)
             )
         );
+        $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->once())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
 
         $response = $handle(
-            $this->createMock(ServerRequest::class),
+            $request,
             Route::of(new Route\Name('capabilities'), Str::of('OPTIONS /*')),
-            new Map('string', 'string')
+            Map::of('string', 'string')
         );
 
         $this->assertInstanceOf(Response::class, $response);
