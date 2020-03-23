@@ -13,6 +13,7 @@ use Innmind\Http\Message\{
     StatusCode,
 };
 use Innmind\Immutable\Map;
+use function Innmind\Immutable\assertMap;
 
 final class Router implements RequestHandler
 {
@@ -23,19 +24,9 @@ final class Router implements RequestHandler
     /**
      * @param Map<string, Controller> $controllers
      */
-    public function __construct(
-        RequestMatcher $match,
-        Map $controllers
-    ) {
-        if (
-            (string) $controllers->keyType() !== 'string' ||
-            (string) $controllers->valueType() !== Controller::class
-        ) {
-            throw new \TypeError(sprintf(
-                'Argument 2 must be of type Map<string, %s>',
-                Controller::class
-            ));
-        }
+    public function __construct(RequestMatcher $match, Map $controllers)
+    {
+        assertMap('string', Controller::class, $controllers, 2);
 
         $this->match = $match;
         $this->controllers = $controllers;
@@ -49,7 +40,7 @@ final class Router implements RequestHandler
             return new Response\Response(
                 $code = StatusCode::of('NOT_FOUND'),
                 $code->associatedReasonPhrase(),
-                $request->protocolVersion()
+                $request->protocolVersion(),
             );
         }
 
@@ -57,7 +48,7 @@ final class Router implements RequestHandler
             return new Response\Response(
                 $code = StatusCode::of('NOT_IMPLEMENTED'),
                 $code->associatedReasonPhrase(),
-                $request->protocolVersion()
+                $request->protocolVersion(),
             );
         }
 
@@ -71,7 +62,7 @@ final class Router implements RequestHandler
                     ->url()
                     ->withoutScheme()
                     ->withoutAuthority(),
-            )
+            ),
         );
     }
 }

@@ -13,6 +13,7 @@ use Innmind\Http\Message\{
     Response,
 };
 use Innmind\Immutable\Map;
+use function Innmind\Immutable\assertMap;
 
 final class Authenticate implements RequestHandler
 {
@@ -31,15 +32,7 @@ final class Authenticate implements RequestHandler
         Condition $condition,
         Map $fallbacks
     ) {
-        if (
-            (string) $fallbacks->keyType() !== 'string' ||
-            (string) $fallbacks->valueType() !== Fallback::class
-        ) {
-            throw new \TypeError(sprintf(
-                'Argument 3 must be of type Map<string, %s>',
-                Fallback::class
-            ));
-        }
+        assertMap('string', Fallback::class, $fallbacks, 3);
 
         $this->handle = $handle;
         $this->authenticate = $authenticate;

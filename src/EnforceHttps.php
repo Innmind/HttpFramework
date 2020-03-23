@@ -24,7 +24,7 @@ final class EnforceHttps implements RequestHandler
             return new Response\Response(
                 $code = StatusCode::of('PERMANENTLY_REDIRECT'),
                 $code->associatedReasonPhrase(),
-                $request->protocolVersion()
+                $request->protocolVersion(),
             );
         }
 

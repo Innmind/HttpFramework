@@ -29,9 +29,9 @@ final class Unauthorized implements Fallback
                             ->authority()
                             ->withoutUserInformation()
                             ->toString(),
-                    )
-                )
-            )
+                    ),
+                ),
+            ),
         );
     }
 }

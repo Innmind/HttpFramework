@@ -57,13 +57,13 @@ final class Routes
                     throw new \LogicException("Unknown action '{$route->action()->toString()}'");
             }
 
-            $map = $map->put(
+            $map = ($map)(
                 new Route(
                     new Route\Name($route->name()->toString().'.'.$route->action()->toString()),
                     $route->template(),
-                    $method
+                    $method,
                 ),
-                $route->definition()
+                $route->definition(),
             );
         }
 

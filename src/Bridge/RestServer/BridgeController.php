@@ -45,9 +45,7 @@ final class BridgeController implements Controller
         $identity = null;
 
         if ($arguments->contains('identity')) {
-            $identity = new Identity(
-                $arguments->get('identity')
-            );
+            $identity = new Identity($arguments->get('identity'));
         }
 
         return ($this->handle)(

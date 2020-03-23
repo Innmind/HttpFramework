@@ -38,9 +38,9 @@ final class Controllers
             /** @var RestController */
             $controller = ${$route->action()->toString()};
 
-            $controllers = $controllers->put(
+            $controllers = ($controllers)(
                 $route->name()->toString().'.'.$route->action()->toString(),
-                new BridgeController($controller, $routesToDefinitions)
+                new BridgeController($controller, $routesToDefinitions),
             );
         }
 
