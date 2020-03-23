@@ -21,6 +21,7 @@ use Innmind\HttpAuthentication\{
 use Innmind\Rest\Server\{
     Definition\Directory,
     Routing\Prefix,
+    Gateway,
 };
 use Innmind\Http\Message\Environment as RequestEnvironment;
 use Innmind\Filesystem\{
@@ -39,12 +40,20 @@ function bootstrap(): array
 {
     return [
         'router' => static function(RequestMatcher $requestMatcher, Map $controllers): RequestHandler {
+            /** @var Map<string, Controller> $controllers */
+
             return new Router($requestMatcher, $controllers);
         },
         'enforce_https' => static function(RequestHandler $handler): RequestHandler {
             return new EnforceHttps($handler);
         },
         'authenticate' => static function(Authenticator $authenticator, Condition $condition, Map $fallbacks = null): callable {
+            /**
+             * @psalm-suppress MixedArgumentTypeCoercion
+             * @psalm-suppress InvalidScalarArgument
+             * @psalm-suppress InvalidArgument
+             * @var Map<string, Fallback>
+             */
             $fallbacks = Map::of('string', Fallback::class)
                 (NoAuthenticationProvided::class, new Unauthorized)
                 (MalformedAuthorizationHeaderException::class, new MalformedAuthorizationHeader)
@@ -56,6 +65,8 @@ function bootstrap(): array
         },
         'bridge' => [
             'rest_server' => static function(Map $gateways, Directory $directory, Route $capabilities, Prefix $prefix = null): array {
+                /** @var Map<string, Gateway> $gateways */
+
                 $rest = rest($gateways, $directory, null, null, $prefix);
 
                 $routesToDefinitions = Bridge\RestServer\Routes::from($rest['routes']);
@@ -89,6 +100,7 @@ function bootstrap(): array
  */
 function env(RequestEnvironment $env, Adapter $config): Map
 {
+    /** @var Map<string, scalar> */
     $env = $env->reduce(
         Map::of('string', 'scalar'),
         static function(Map $env, string $key, string $value): Map {
@@ -97,6 +109,7 @@ function env(RequestEnvironment $env, Adapter $config): Map
     );
 
     if ($config->contains(new Name('.env'))) {
+        /** @var array<string, scalar> */
         $dot = (new Dotenv)->parse($config->get(new Name('.env'))->content()->toString());
 
         foreach ($dot as $key => $value) {

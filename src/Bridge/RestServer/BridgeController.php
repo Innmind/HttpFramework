@@ -20,8 +20,12 @@ use function Innmind\Immutable\assertMap;
 final class BridgeController implements Controller
 {
     private RestController $handle;
+    /** @var Map<Route, HttpResource> */
     private Map $definitions;
 
+    /**
+     * @param Map<Route, HttpResource> $definitions
+     */
     public function __construct(RestController $handle, Map $definitions)
     {
         assertMap(Route::class, HttpResource::class, $definitions, 2);
@@ -38,6 +42,8 @@ final class BridgeController implements Controller
         Route $route,
         Map $arguments
     ): Response {
+        $identity = null;
+
         if ($arguments->contains('identity')) {
             $identity = new Identity(
                 $arguments->get('identity')
@@ -47,7 +53,7 @@ final class BridgeController implements Controller
         return ($this->handle)(
             $request,
             $this->definitions->get($route),
-            $identity ?? null
+            $identity,
         );
     }
 }

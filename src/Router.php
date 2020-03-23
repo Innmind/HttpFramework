@@ -17,8 +17,12 @@ use Innmind\Immutable\Map;
 final class Router implements RequestHandler
 {
     private RequestMatcher $match;
+    /** @var Map<string, Controller> */
     private Map $controllers;
 
+    /**
+     * @param Map<string, Controller> $controllers
+     */
     public function __construct(
         RequestMatcher $match,
         Map $controllers

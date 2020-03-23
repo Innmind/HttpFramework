@@ -19,6 +19,7 @@ final class Routes
      */
     public static function from(RestRoutes $routes): Map
     {
+        /** @var Map<Route, HttpResource> */
         $map = Map::of(Route::class, HttpResource::class);
 
         foreach ($routes as $route) {
@@ -51,6 +52,9 @@ final class Routes
                 case Action::options():
                     $method = Method::options();
                     break;
+
+                default:
+                    throw new \LogicException("Unknown action '{$route->action()->toString()}'");
             }
 
             $map = $map->put(

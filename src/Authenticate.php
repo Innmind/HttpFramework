@@ -19,8 +19,12 @@ final class Authenticate implements RequestHandler
     private RequestHandler $handle;
     private Authenticator $authenticate;
     private Condition $mustAuthenticate;
+    /** @var Map<string, Fallback> */
     private Map $fallbacks;
 
+    /**
+     * @param Map<string, Fallback> $fallbacks
+     */
     public function __construct(
         RequestHandler $handle,
         Authenticator $authenticate,
