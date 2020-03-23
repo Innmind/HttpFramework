@@ -29,6 +29,7 @@ use Innmind\Filesystem\{
     Name,
 };
 use Innmind\Immutable\{
+    Set,
     Map,
     Str,
     Pair,
@@ -36,6 +37,9 @@ use Innmind\Immutable\{
 use function Innmind\Rest\Server\bootstrap as rest;
 use Symfony\Component\Dotenv\Dotenv;
 
+/**
+ * @return array{router: callable(RequestMatcher, Map<string, Controller>): RequestHandler, enforce_https: callable(RequestHandler): RequestHandler, authenticate: callable(Authenticator, Condition, ?Map<string, Fallback>): (callable(RequestHandler): RequestHandler), bridge: array{rest_server: callable(Map<string, Gateway>, Directory, Route, ?Prefix): array{routes: Set<Route>, controllers: Map<string, Controller>}}}
+ */
 function bootstrap(): array
 {
     return [
