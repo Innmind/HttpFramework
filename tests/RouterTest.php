@@ -14,15 +14,15 @@ use Innmind\Router\{
     Route\Name,
     Exception\NoMatchingRouteFound,
 };
-use Innmind\Http\Message\{
-    ServerRequest,
-    Response,
-    StatusCode\StatusCode,
+use Innmind\Http\{
+    Message\ServerRequest,
+    Message\Response,
+    Message\StatusCode,
+    ProtocolVersion,
 };
 use Innmind\Url\Url;
-use Innmind\Filesystem\Stream\StringStream;
+use Innmind\Stream\Readable\Stream;
 use Innmind\Immutable\{
-    MapInterface,
     Map,
     Str,
 };
@@ -36,7 +36,7 @@ class RouterTest extends TestCase
             RequestHandler::class,
             new Router(
                 $this->createMock(RequestMatcher::class),
-                new Map('string', Controller::class)
+                Map::of('string', Controller::class)
             )
         );
     }
@@ -44,22 +44,22 @@ class RouterTest extends TestCase
     public function testThrowWhenInvalidHandlersKeyType()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<string, Innmind\HttpFramework\Controller>');
+        $this->expectExceptionMessage('Argument 2 must be of type Map<string, Innmind\HttpFramework\Controller>');
 
         new Router(
             $this->createMock(RequestMatcher::class),
-            new Map('int', Controller::class)
+            Map::of('int', Controller::class)
         );
     }
 
     public function testThrowWhenInvalidHandlersValueType()
     {
         $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('Argument 2 must be of type MapInterface<string, Innmind\HttpFramework\Controller>');
+        $this->expectExceptionMessage('Argument 2 must be of type Map<string, Innmind\HttpFramework\Controller>');
 
         new Router(
             $this->createMock(RequestMatcher::class),
-            new Map('string', RequestHandler::class)
+            Map::of('string', RequestHandler::class)
         );
     }
 
@@ -67,9 +67,13 @@ class RouterTest extends TestCase
     {
         $route = new Router(
             $matcher = $this->createMock(RequestMatcher::class),
-            new Map('string', Controller::class)
+            Map::of('string', Controller::class)
         );
         $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->any())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
         $matcher
             ->expects($this->once())
             ->method('__invoke')
@@ -86,9 +90,13 @@ class RouterTest extends TestCase
     {
         $route = new Router(
             $matcher = $this->createMock(RequestMatcher::class),
-            new Map('string', Controller::class)
+            Map::of('string', Controller::class)
         );
         $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->any())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
         $matcher
             ->expects($this->once())
             ->method('__invoke')
@@ -105,11 +113,11 @@ class RouterTest extends TestCase
     {
         $route = new Router(
             $matcher = $this->createMock(RequestMatcher::class),
-            (new Map('string', Controller::class))
+            (Map::of('string', Controller::class))
                 ->put(
                     'foo',
                     new class implements Controller {
-                        public function __invoke(ServerRequest $request, Route $route, MapInterface $arguments): Response
+                        public function __invoke(ServerRequest $request, Route $route, Map $arguments): Response
                         {
                             $bar = $arguments->get('bar');
                             $baz = $arguments->get('baz');
@@ -119,7 +127,7 @@ class RouterTest extends TestCase
                                 $code->associatedReasonPhrase(),
                                 $request->protocolVersion(),
                                 null,
-                                new StringStream("$bar $baz from {$route->name()}")
+                                Stream::ofContent("$bar $baz from {$route->name()->toString()}")
                             );
                         }
                     }
@@ -129,7 +137,11 @@ class RouterTest extends TestCase
         $request
             ->expects($this->any())
             ->method('url')
-            ->willReturn(Url::fromString('http://localhost:8000/foo/hello/world'));
+            ->willReturn(Url::of('http://localhost:8000/foo/hello/world'));
+        $request
+            ->expects($this->any())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
         $matcher
             ->expects($this->once())
             ->method('__invoke')
@@ -140,6 +152,6 @@ class RouterTest extends TestCase
 
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(200, $response->statusCode()->value());
-        $this->assertSame('hello world from foo', (string) $response->body());
+        $this->assertSame('hello world from foo', $response->body()->toString());
     }
 }

@@ -7,9 +7,10 @@ use Innmind\HttpFramework\{
     EnforceHttps,
     RequestHandler,
 };
-use Innmind\Http\Message\{
-    ServerRequest,
-    Response,
+use Innmind\Http\{
+    Message\ServerRequest,
+    Message\Response,
+    ProtocolVersion,
 };
 use Innmind\Url\Url;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,11 @@ class EnforceHttpsTest extends TestCase
         $request
             ->expects($this->once())
             ->method('url')
-            ->willReturn(Url::fromString('http://localhost/'));
+            ->willReturn(Url::of('http://localhost/'));
+        $request
+            ->expects($this->once())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
         $inner
             ->expects($this->never())
             ->method('__invoke');
@@ -53,7 +58,7 @@ class EnforceHttpsTest extends TestCase
         $request
             ->expects($this->once())
             ->method('url')
-            ->willReturn(Url::fromString('https://localhost/'));
+            ->willReturn(Url::of('https://localhost/'));
         $inner
             ->expects($this->once())
             ->method('__invoke')

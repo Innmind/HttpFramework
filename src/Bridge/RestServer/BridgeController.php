@@ -14,15 +14,15 @@ use Innmind\Http\Message\{
     Response,
 };
 use Innmind\Router\Route;
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
 use function Innmind\Immutable\assertMap;
 
 final class BridgeController implements Controller
 {
     private RestController $handle;
-    private MapInterface $definitions;
+    private Map $definitions;
 
-    public function __construct(RestController $handle, MapInterface $definitions)
+    public function __construct(RestController $handle, Map $definitions)
     {
         assertMap(Route::class, HttpResource::class, $definitions, 2);
 
@@ -36,7 +36,7 @@ final class BridgeController implements Controller
     public function __invoke(
         ServerRequest $request,
         Route $route,
-        MapInterface $arguments
+        Map $arguments
     ): Response {
         if ($arguments->contains('identity')) {
             $identity = new Identity(

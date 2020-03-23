@@ -20,7 +20,6 @@ use Innmind\Rest\Server\{
 };
 use Innmind\Router\Route;
 use Innmind\Immutable\{
-    MapInterface,
     Map,
     Set,
 };
@@ -91,7 +90,7 @@ class ControllersTest extends TestCase
             Map::of(Route::class, HttpResource::class)
         );
 
-        $this->assertInstanceOf(MapInterface::class, $controllers);
+        $this->assertInstanceOf(Map::class, $controllers);
         $this->assertSame('string', (string) $controllers->keyType());
         $this->assertSame(Controller::class, (string) $controllers->valueType());
         $this->assertCount(8, $controllers);

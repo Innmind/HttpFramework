@@ -12,27 +12,27 @@ use Innmind\Http\Message\{
     ServerRequest,
     Response,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
 
 final class Authenticate implements RequestHandler
 {
     private RequestHandler $handle;
     private Authenticator $authenticate;
     private Condition $mustAuthenticate;
-    private MapInterface $fallbacks;
+    private Map $fallbacks;
 
     public function __construct(
         RequestHandler $handle,
         Authenticator $authenticate,
         Condition $condition,
-        MapInterface $fallbacks
+        Map $fallbacks
     ) {
         if (
             (string) $fallbacks->keyType() !== 'string' ||
             (string) $fallbacks->valueType() !== Fallback::class
         ) {
             throw new \TypeError(sprintf(
-                'Argument 3 must be of type MapInterface<string, %s>',
+                'Argument 3 must be of type Map<string, %s>',
                 Fallback::class
             ));
         }

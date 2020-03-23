@@ -5,7 +5,6 @@ namespace Innmind\HttpFramework;
 
 use Innmind\Http\Message\Environment as RequestEnvironment;
 use Innmind\Immutable\{
-    MapInterface,
     Map,
     Pair,
     Str,
@@ -21,15 +20,15 @@ final class Environment
     /**
      * @deprecated
      *
-     * @return MapInterface<string, mixed>
+     * @return Map<string, mixed>
      */
     public static function of(
         string $envFile,
         RequestEnvironment $environment
-    ): MapInterface {
+    ): Map {
         @trigger_error('Use the `env` function instead', E_USER_DEPRECATED);
 
-        $arguments = new Map('string', 'mixed');
+        $arguments = Map::of('string', 'mixed');
 
         if (\file_exists($envFile)) {
             $env = (new Dotenv)->parse(\file_get_contents($envFile));
@@ -39,25 +38,27 @@ final class Environment
             }
         }
 
-        foreach ($environment as $key => $value) {
-            $arguments = $arguments->put($key, $value);
-        };
 
-        return $arguments;
+        return $environment->reduce(
+            $arguments,
+            static function(Map $env, string $key, string $value): Map {
+                return ($env)($key, $value);
+            },
+        );
     }
 
     /**
      * Same as self::of() but will camelize all keys
      *
-     * @return MapInterface<string, mixed>
+     * @return Map<string, mixed>
      */
     public static function camelize(
         string $envFile,
         RequestEnvironment $environment
-    ): MapInterface {
+    ): Map {
         return self::of($envFile, $environment)->map(static function(string $name, $value): Pair {
             return new Pair(
-                (string) Str::of($name)->toLower()->camelize()->lcfirst(),
+                Str::of($name)->toLower()->camelize()->toString(),
                 $value
             );
         });

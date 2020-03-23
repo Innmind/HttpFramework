@@ -8,15 +8,12 @@ use Innmind\Rest\Server\{
     Routing\Routes,
     Controller as RestController,
 };
-use Innmind\Immutable\{
-    MapInterface,
-    Map,
-};
+use Innmind\Immutable\Map;
 
 final class Controllers
 {
     /**
-     * @return MapInterface<string, Controller>
+     * @return Map<string, Controller>
      */
     public static function from(
         Routes $routes,
@@ -28,15 +25,15 @@ final class Controllers
         RestController $update,
         RestController $link,
         RestController $unlink,
-        MapInterface $routesToDefinitions
-    ): MapInterface {
-        $controllers = new Map('string', Controller::class);
+        Map $routesToDefinitions
+    ): Map {
+        $controllers = Map::of('string', Controller::class);
 
         foreach ($routes as $route) {
-            $controller = ${(string) $route->action()};
+            $controller = ${$route->action()->toString()};
 
             $controllers = $controllers->put(
-                $route->name().'.'.$route->action(),
+                $route->name()->toString().'.'.$route->action()->toString(),
                 new BridgeController($controller, $routesToDefinitions)
             );
         }

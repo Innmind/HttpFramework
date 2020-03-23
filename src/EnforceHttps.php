@@ -6,7 +6,7 @@ namespace Innmind\HttpFramework;
 use Innmind\Http\Message\{
     ServerRequest,
     Response,
-    StatusCode\StatusCode,
+    StatusCode,
 };
 
 final class EnforceHttps implements RequestHandler
@@ -20,7 +20,7 @@ final class EnforceHttps implements RequestHandler
 
     public function __invoke(ServerRequest $request): Response
     {
-        if ((string) $request->url()->scheme() !== 'https') {
+        if ($request->url()->scheme()->toString() !== 'https') {
             return new Response\Response(
                 $code = StatusCode::of('PERMANENTLY_REDIRECT'),
                 $code->associatedReasonPhrase(),

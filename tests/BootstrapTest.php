@@ -24,16 +24,14 @@ use Innmind\Rest\Server\{
     Gateway,
     Definition\Directory,
 };
-use Innmind\Http\Message\Environment\Environment;
+use Innmind\Http\Message\Environment;
 use Innmind\Filesystem\{
-    Adapter\MemoryAdapter,
+    Adapter\InMemory,
     File\File,
-    Stream\StringStream,
 };
+use Innmind\Stream\Readable\Stream;
 use Innmind\Immutable\{
-    MapInterface,
     Map,
-    SetInterface,
     Set,
     Str,
 };
@@ -50,7 +48,7 @@ class BootstrapTest extends TestCase
             Router::class,
             $handlers['router'](
                 $this->createMock(RequestMatcher::class),
-                new Map('string', Controller::class)
+                Map::of('string', Controller::class)
             )
         );
         $this->assertIsCallable($handlers['enforce_https']);
@@ -76,9 +74,9 @@ class BootstrapTest extends TestCase
             Route::of(new Route\Name('capabilities'), Str::of('OPTIONS /\*'))
         );
         $this->assertIsArray($rest);
-        $this->assertInstanceOf(SetInterface::class, $rest['routes']);
+        $this->assertInstanceOf(Set::class, $rest['routes']);
         $this->assertSame(Route::class, (string) $rest['routes']->type());
-        $this->assertInstanceOf(MapInterface::class, $rest['controllers']);
+        $this->assertInstanceOf(Map::class, $rest['controllers']);
         $this->assertSame('string', (string) $rest['controllers']->keyType());
         $this->assertSame(Controller::class, (string) $rest['controllers']->valueType());
         $this->assertTrue($rest['controllers']->contains('capabilities'));
@@ -88,14 +86,14 @@ class BootstrapTest extends TestCase
     {
         $env = env(
             new Environment(
-                Map::of('string', 'scalar')
+                Map::of('string', 'string')
                     ('FOO', 'foo')
                     ('BAZ', 'baz')
             ),
-            new MemoryAdapter
+            new InMemory
         );
 
-        $this->assertInstanceOf(MapInterface::class, $env);
+        $this->assertInstanceOf(Map::class, $env);
         $this->assertSame('string', (string) $env->keyType());
         $this->assertSame('scalar', (string) $env->valueType());
         $this->assertCount(2, $env);
@@ -105,22 +103,22 @@ class BootstrapTest extends TestCase
 
     public function testEnvWithDotEnvFile()
     {
-        $config = new MemoryAdapter;
-        $config->add(new File(
+        $config = new InMemory;
+        $config->add(File::named(
             '.env',
-            new StringStream("BAR=42\nFOO_BAR=foobaz")
+            Stream::ofContent("BAR=42\nFOO_BAR=foobaz")
         ));
 
         $env = env(
             new Environment(
-                Map::of('string', 'scalar')
+                Map::of('string', 'string')
                     ('FOO', 'foo')
                     ('BAZ', 'baz')
             ),
             $config
         );
 
-        $this->assertInstanceOf(MapInterface::class, $env);
+        $this->assertInstanceOf(Map::class, $env);
         $this->assertSame('string', (string) $env->keyType());
         $this->assertSame('scalar', (string) $env->valueType());
         $this->assertCount(4, $env);

@@ -10,7 +10,7 @@ use Innmind\Http\Message\{
     Response,
 };
 use Innmind\Router\Route;
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
 
 final class CapabilitiesController implements Controller
 {
@@ -27,7 +27,7 @@ final class CapabilitiesController implements Controller
     public function __invoke(
         ServerRequest $request,
         Route $route,
-        MapInterface $arguments
+        Map $arguments
     ): Response {
         return ($this->handle)($request);
     }

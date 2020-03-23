@@ -23,9 +23,11 @@ use Innmind\Rest\Server\{
     Routing\Prefix,
 };
 use Innmind\Http\Message\Environment as RequestEnvironment;
-use Innmind\Filesystem\Adapter;
+use Innmind\Filesystem\{
+    Adapter,
+    Name,
+};
 use Innmind\Immutable\{
-    MapInterface,
     Map,
     Str,
     Pair,
@@ -36,24 +38,24 @@ use Symfony\Component\Dotenv\Dotenv;
 function bootstrap(): array
 {
     return [
-        'router' => static function(RequestMatcher $requestMatcher, MapInterface $controllers): RequestHandler {
+        'router' => static function(RequestMatcher $requestMatcher, Map $controllers): RequestHandler {
             return new Router($requestMatcher, $controllers);
         },
         'enforce_https' => static function(RequestHandler $handler): RequestHandler {
             return new EnforceHttps($handler);
         },
-        'authenticate' => static function(Authenticator $authenticator, Condition $condition, MapInterface $fallbacks = null): callable {
-            $fallbacks = (new Map('string', Fallback::class))
-                ->put(NoAuthenticationProvided::class, new Unauthorized)
-                ->put(MalformedAuthorizationHeaderException::class, new MalformedAuthorizationHeader)
-                ->merge($fallbacks ?? new Map('string', Fallback::class));
+        'authenticate' => static function(Authenticator $authenticator, Condition $condition, Map $fallbacks = null): callable {
+            $fallbacks = Map::of('string', Fallback::class)
+                (NoAuthenticationProvided::class, new Unauthorized)
+                (MalformedAuthorizationHeaderException::class, new MalformedAuthorizationHeader)
+                ->merge($fallbacks ?? Map::of('string', Fallback::class));
 
             return static function(RequestHandler $handler) use ($authenticator, $condition, $fallbacks): RequestHandler {
                 return new Authenticate($handler, $authenticator, $condition, $fallbacks);
             };
         },
         'bridge' => [
-            'rest_server' => static function(MapInterface $gateways, Directory $directory, Route $capabilities, Prefix $prefix = null): array {
+            'rest_server' => static function(Map $gateways, Directory $directory, Route $capabilities, Prefix $prefix = null): array {
                 $rest = rest($gateways, $directory, null, null, $prefix);
 
                 $routesToDefinitions = Bridge\RestServer\Routes::from($rest['routes']);
@@ -72,8 +74,8 @@ function bootstrap(): array
 
                 return [
                     'routes' => $routesToDefinitions->keys()->add($capabilities),
-                    'controllers' => $controllers->put(
-                        (string) $capabilities->name(),
+                    'controllers' => ($controllers)(
+                        $capabilities->name()->toString(),
                         new Bridge\RestServer\CapabilitiesController($rest['controller']['capabilities'])
                     ),
                 ];
@@ -83,24 +85,28 @@ function bootstrap(): array
 }
 
 /**
- * @return MapInterface<string, scalar>
+ * @return Map<string, scalar>
  */
-function env(RequestEnvironment $env, Adapter $config): MapInterface
+function env(RequestEnvironment $env, Adapter $config): Map
 {
-    $env = \iterator_to_array($env);
-    $env = Map::of('string', 'scalar', \array_keys($env), \array_values($env));
+    $env = $env->reduce(
+        Map::of('string', 'scalar'),
+        static function(Map $env, string $key, string $value): Map {
+            return ($env)($key, $value);
+        },
+    );
 
-    if ($config->has('.env')) {
-        $dot = (new Dotenv)->parse((string) $config->get('.env')->content());
+    if ($config->contains(new Name('.env'))) {
+        $dot = (new Dotenv)->parse($config->get(new Name('.env'))->content()->toString());
 
         foreach ($dot as $key => $value) {
-            $env = $env->put($key, $value);
+            $env = ($env)($key, $value);
         }
     }
 
     return $env->map(static function(string $name, $value): Pair {
         return new Pair(
-            (string) Str::of($name)->toLower()->camelize()->lcfirst(),
+            Str::of($name)->toLower()->camelize()->toString(),
             $value
         );
     });

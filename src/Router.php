@@ -10,29 +10,25 @@ use Innmind\Router\{
 use Innmind\Http\Message\{
     ServerRequest,
     Response,
-    StatusCode\StatusCode,
+    StatusCode,
 };
-use Innmind\Url\{
-    NullScheme,
-    NullAuthority,
-};
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
 
 final class Router implements RequestHandler
 {
     private RequestMatcher $match;
-    private MapInterface $controllers;
+    private Map $controllers;
 
     public function __construct(
         RequestMatcher $match,
-        MapInterface $controllers
+        Map $controllers
     ) {
         if (
             (string) $controllers->keyType() !== 'string' ||
             (string) $controllers->valueType() !== Controller::class
         ) {
             throw new \TypeError(sprintf(
-                'Argument 2 must be of type MapInterface<string, %s>',
+                'Argument 2 must be of type Map<string, %s>',
                 Controller::class
             ));
         }
@@ -53,7 +49,7 @@ final class Router implements RequestHandler
             );
         }
 
-        if (!$this->controllers->contains((string) $route->name())) {
+        if (!$this->controllers->contains($route->name()->toString())) {
             return new Response\Response(
                 $code = StatusCode::of('NOT_IMPLEMENTED'),
                 $code->associatedReasonPhrase(),
@@ -61,7 +57,7 @@ final class Router implements RequestHandler
             );
         }
 
-        $handle = $this->controllers->get((string) $route->name());
+        $handle = $this->controllers->get($route->name()->toString());
 
         return $handle(
             $request,
@@ -69,8 +65,8 @@ final class Router implements RequestHandler
             $route->template()->extract(
                 $request
                     ->url()
-                    ->withScheme(new NullScheme)
-                    ->withAuthority(new NullAuthority)
+                    ->withoutScheme()
+                    ->withoutAuthority(),
             )
         );
     }

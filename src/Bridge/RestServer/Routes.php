@@ -9,20 +9,17 @@ use Innmind\Rest\Server\{
     Action,
 };
 use Innmind\Router\Route;
-use Innmind\Http\Message\Method\Method;
-use Innmind\Immutable\{
-    MapInterface,
-    Map,
-};
+use Innmind\Http\Message\Method;
+use Innmind\Immutable\Map;
 
 final class Routes
 {
     /**
-     * @return MapInterface<Route, HttpResource>
+     * @return Map<Route, HttpResource>
      */
-    public static function from(RestRoutes $routes): MapInterface
+    public static function from(RestRoutes $routes): Map
     {
-        $map = new Map(Route::class, HttpResource::class);
+        $map = Map::of(Route::class, HttpResource::class);
 
         foreach ($routes as $route) {
             switch ($route->action()) {
@@ -58,7 +55,7 @@ final class Routes
 
             $map = $map->put(
                 new Route(
-                    new Route\Name($route->name().'.'.$route->action()),
+                    new Route\Name($route->name()->toString().'.'.$route->action()->toString()),
                     $route->template(),
                     $method
                 ),

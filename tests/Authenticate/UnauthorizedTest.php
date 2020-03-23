@@ -7,9 +7,10 @@ use Innmind\HttpFramework\Authenticate\{
     Unauthorized,
     Fallback,
 };
-use Innmind\Http\Message\{
-    ServerRequest,
-    Response,
+use Innmind\Http\{
+    Message\ServerRequest,
+    Message\Response,
+    ProtocolVersion,
 };
 use Innmind\Url\Url;
 use PHPUnit\Framework\TestCase;
@@ -28,16 +29,20 @@ class UnauthorizedTest extends TestCase
         $request
             ->expects($this->once())
             ->method('url')
-            ->willReturn(Url::fromString('http://user:password@sub.example.com:8000/somewhere'));
+            ->willReturn(Url::of('http://user:password@sub.example.com:8000/somewhere'));
+        $request
+            ->expects($this->once())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
 
         $response = $unauthorize($request, new \Exception);
 
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(401, $response->statusCode()->value());
-        $this->assertTrue($response->headers()->has('WWW-Authenticate'));
+        $this->assertTrue($response->headers()->contains('WWW-Authenticate'));
         $this->assertSame(
             'WWW-Authenticate: Basic realm=sub.example.com:8000',
-            (string) $response->headers()->get('WWW-Authenticate')
+            $response->headers()->get('WWW-Authenticate')->toString(),
         );
     }
 }

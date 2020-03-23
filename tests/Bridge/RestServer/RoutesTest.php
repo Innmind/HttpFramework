@@ -16,7 +16,7 @@ use Innmind\Rest\Server\{
 };
 use Innmind\Router\Route;
 use Innmind\Immutable\{
-    MapInterface,
+    Map,
     Set,
 };
 use PHPUnit\Framework\TestCase;
@@ -75,7 +75,7 @@ class RoutesTest extends TestCase
             )
         ));
 
-        $this->assertInstanceOf(MapInterface::class, $routes);
+        $this->assertInstanceOf(Map::class, $routes);
         $this->assertSame(Route::class, (string) $routes->keyType());
         $this->assertSame(HttpResource::class, (string) $routes->valueType());
         $this->assertCount(8, $routes);

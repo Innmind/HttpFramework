@@ -6,9 +6,9 @@ namespace Innmind\HttpFramework\Authenticate;
 use Innmind\Http\Message\{
     ServerRequest,
     Response,
-    StatusCode\StatusCode,
+    StatusCode,
 };
-use Innmind\Filesystem\Stream\StringStream;
+use Innmind\Stream\Readable\Stream;
 
 final class MalformedAuthorizationHeader implements Fallback
 {
@@ -19,7 +19,7 @@ final class MalformedAuthorizationHeader implements Fallback
             $code->associatedReasonPhrase(),
             $request->protocolVersion(),
             null,
-            new StringStream('Malformed authorization header')
+            Stream::ofContent('Malformed authorization header'),
         );
     }
 }

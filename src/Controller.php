@@ -8,16 +8,16 @@ use Innmind\Http\Message\{
     ServerRequest,
     Response,
 };
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
 
 interface Controller
 {
     /**
-     * @param MapInterface<string, string> $arguments
+     * @param Map<string, string> $arguments
      */
     public function __invoke(
         ServerRequest $request,
         Route $route,
-        MapInterface $arguments
+        Map $arguments
     ): Response;
 }

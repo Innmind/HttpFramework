@@ -4,11 +4,8 @@ declare(strict_types = 1);
 namespace Tests\Innmind\HttpFramework;
 
 use Innmind\HttpFramework\Environment;
-use Innmind\Http\Message\Environment\Environment as RequestEnvironment;
-use Innmind\Immutable\{
-    MapInterface,
-    Map,
-};
+use Innmind\Http\Message\Environment as RequestEnvironment;
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
 class EnvironmentTest extends TestCase
@@ -18,13 +15,13 @@ class EnvironmentTest extends TestCase
         $environment = Environment::of(
             'fixtures/.env',
             new RequestEnvironment(
-                (new Map('string', 'scalar'))
-                    ->put('FOO', 'foo')
-                    ->put('BAZ', 'baz')
+                Map::of('string', 'string')
+                    ('FOO', 'foo')
+                    ('BAZ', 'baz')
             )
         );
 
-        $this->assertInstanceOf(MapInterface::class, $environment);
+        $this->assertInstanceOf(Map::class, $environment);
         $this->assertSame('string', (string) $environment->keyType());
         $this->assertSame('mixed', (string) $environment->valueType());
         $this->assertCount(3, $environment);
@@ -38,13 +35,13 @@ class EnvironmentTest extends TestCase
         $environment = Environment::of(
             'fixtures/unknown/.env',
             new RequestEnvironment(
-                (new Map('string', 'scalar'))
-                    ->put('FOO', 'foo')
-                    ->put('BAZ', 'baz')
+                Map::of('string', 'string')
+                    ('FOO', 'foo')
+                    ('BAZ', 'baz')
             )
         );
 
-        $this->assertInstanceOf(MapInterface::class, $environment);
+        $this->assertInstanceOf(Map::class, $environment);
         $this->assertSame('string', (string) $environment->keyType());
         $this->assertSame('mixed', (string) $environment->valueType());
         $this->assertCount(2, $environment);
@@ -56,12 +53,12 @@ class EnvironmentTest extends TestCase
         $environment = Environment::camelize(
             'fixtures/.env',
             new RequestEnvironment(
-                (new Map('string', 'scalar'))
-                    ->put('FOO_BAR', 'foo')
+                Map::of('string', 'string')
+                    ('FOO_BAR', 'foo')
             )
         );
 
-        $this->assertInstanceOf(MapInterface::class, $environment);
+        $this->assertInstanceOf(Map::class, $environment);
         $this->assertSame('string', (string) $environment->keyType());
         $this->assertSame('mixed', (string) $environment->valueType());
         $this->assertCount(3, $environment);
