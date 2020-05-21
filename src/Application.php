@@ -39,6 +39,18 @@ final class Application
         );
     }
 
+    /**
+     * @param callable(OperatingSystem, Environment): RequestHandler $handler
+     */
+    public function handler(callable $handler): self
+    {
+        return new self(
+            $this->os,
+            $this->env,
+            $handler,
+        );
+    }
+
     public function handle(ServerRequest $request): Response
     {
         $handle = ($this->handler)($this->os, $this->env);
