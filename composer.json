@@ -21,7 +21,8 @@
         "innmind/http-authentication": "~2.0",
         "innmind/rest-server": "~8.0",
         "innmind/operating-system": "^2.1",
-        "innmind/silent-cartographer": "^2.0"
+        "innmind/silent-cartographer": "^2.0",
+        "innmind/http-server": "^2.0"
     },
     "autoload": {
         "psr-4": {
