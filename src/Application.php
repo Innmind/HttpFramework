@@ -9,9 +9,13 @@ use Innmind\Http\{
     Message\ServerRequest,
     Message\Response,
 };
-use Innmind\Url\Path;
+use Innmind\Url\{
+    Url,
+    Path,
+};
 use Innmind\Filesystem\Name;
 use Innmind\Immutable\Map;
+use function Innmind\SilentCartographer\bootstrap as cartographer;
 use Symfony\Component\Dotenv\Dotenv;
 
 final class Application
@@ -22,21 +26,28 @@ final class Application
     private \Closure $handler;
     /** @var \Closure(OperatingSystem, Environment): Environment */
     private \Closure $loadDotEnv;
+    /** @var \Closure(OperatingSystem, Environment): OperatingSystem */
+    private \Closure $enableSilentCartographer;
+    /** @var \Closure(OperatingSystem): OperatingSystem */
+    private \Closure $useResilientOperatingSystem;
 
     /**
      * @param callable(OperatingSystem, Environment): RequestHandler $handler
      * @param callable(OperatingSystem, Environment): Environment $loadDotEnv
+     * @param callable(OperatingSystem, Environment): OperatingSystem $enableSilentCartographer
      */
     private function __construct(
         OperatingSystem $os,
         Environment $env,
         callable $handler,
-        callable $loadDotEnv
+        callable $loadDotEnv,
+        callable $enableSilentCartographer
     ) {
         $this->os = $os;
         $this->env = $env;
         $this->handler = \Closure::fromCallable($handler);
         $this->loadDotEnv = \Closure::fromCallable($loadDotEnv);
+        $this->enableSilentCartographer = \Closure::fromCallable($enableSilentCartographer);
     }
 
     public static function of(OperatingSystem $os, Environment $env): self
@@ -46,6 +57,24 @@ final class Application
             $env,
             static fn(): RequestHandler => new RequestHandler\HelloWorld,
             static fn(OperatingSystem $os, Environment $env): Environment => $env,
+            static function(OperatingSystem $os, Environment $env): OperatingSystem {
+                switch (true) {
+                    case $env->contains('PWD'):
+                        $location = $env->get('PWD');
+                        break;
+
+                    case $env->contains('SCRIPT_FILENAME'):
+                        $location = $env->get('SCRIPT_FILENAME');
+                        break;
+
+                    default:
+                        return $os;
+                }
+
+                return cartographer($os)['http_server'](
+                    Url::of($location),
+                );
+            },
         );
     }
 
@@ -59,6 +88,7 @@ final class Application
             $this->env,
             $handler,
             $this->loadDotEnv,
+            $this->enableSilentCartographer,
         );
     }
 
@@ -94,13 +124,26 @@ final class Application
 
                 return new Environment($variables);
             },
+            $this->enableSilentCartographer
+        );
+    }
+
+    public function disableSilentCartographer(): self
+    {
+        return new self(
+            $this->os,
+            $this->env,
+            $this->handler,
+            $this->loadDotEnv,
+            static fn(OperatingSystem $os): OperatingSystem => $os,
         );
     }
 
     public function handle(ServerRequest $request): Response
     {
-        $env = ($this->loadDotEnv)($this->os, $this->env);
-        $handle = ($this->handler)($this->os, $env);
+        $os = ($this->enableSilentCartographer)($this->os, $this->env);
+        $env = ($this->loadDotEnv)($os, $this->env);
+        $handle = ($this->handler)($os, $env);
 
         return $handle($request);
     }

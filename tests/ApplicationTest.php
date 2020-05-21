@@ -18,16 +18,24 @@ use Innmind\Http\{
     ProtocolVersion,
 };
 use Innmind\Url\Path;
+use Innmind\SilentCartographer\OperatingSystem as SilentCartographer;
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
+use Innmind\BlackBox\{
+    PHPUnit\BlackBox,
+    Set,
+};
 
 class ApplicationTest extends TestCase
 {
+    use BlackBox;
+
     public function testByDefaultItReturnsAnHelloWorld()
     {
         $app = Application::of(
             $this->createMock(OperatingSystem::class),
             new Environment,
-        );
+        )->disableSilentCartographer();
         $request = $this->createMock(ServerRequest::class);
         $request
             ->expects($this->once())
@@ -53,7 +61,9 @@ class ApplicationTest extends TestCase
         $app = Application::of(
             $this->createMock(OperatingSystem::class),
             new Environment,
-        )->handler(fn() => $handler);
+        )
+            ->disableSilentCartographer()
+            ->handler(fn() => $handler);
 
         $response = $app->handle($request);
 
@@ -75,6 +85,7 @@ class ApplicationTest extends TestCase
             new Environment,
         )
             ->configAt(Path::of(__DIR__.'/../fixtures/'))
+            ->disableSilentCartographer()
             ->handler(function($os, $env) use ($handler) {
                 $this->assertTrue($env->contains('FOO'));
                 $this->assertTrue($env->contains('BAR'));
@@ -104,6 +115,7 @@ class ApplicationTest extends TestCase
             new Environment,
         )
             ->configAt(Path::of(__DIR__.'/../unknown/'))
+            ->disableSilentCartographer()
             ->handler(function($os, $env) use ($handler) {
                 $this->assertFalse($env->contains('FOO'));
                 $this->assertFalse($env->contains('BAR'));
@@ -131,6 +143,7 @@ class ApplicationTest extends TestCase
             new Environment,
         )
             ->configAt(Path::of(__DIR__.'/../src/'))
+            ->disableSilentCartographer()
             ->handler(function($os, $env) use ($handler) {
                 $this->assertFalse($env->contains('FOO'));
                 $this->assertFalse($env->contains('BAR'));
@@ -141,5 +154,69 @@ class ApplicationTest extends TestCase
         $response = $app->handle($request);
 
         $this->assertSame($expected, $response);
+    }
+
+    public function testEnableSilentCartographerByDefault()
+    {
+        $this
+            ->forAll(Set\Elements::of('PWD', 'SCRIPT_FILENAME'))
+            ->then(function($location) {
+                $request = $this->createMock(ServerRequest::class);
+                $handler = $this->createMock(RequestHandler::class);
+                $handler
+                    ->expects($this->once())
+                    ->method('__invoke')
+                    ->with($request)
+                    ->willReturn($expected = $this->createMock(Response::class));
+
+                $app = Application::of(
+                    Factory::build(),
+                    new Environment(
+                        Map::of('string', 'string')
+                            ($location, __DIR__),
+                    ),
+                )->handler(function($os, $env) use ($handler) {
+                    $this->assertInstanceOf(SilentCartographer::class, $os);
+
+                    return $handler;
+                });
+
+                $response = $app->handle($request);
+
+                $this->assertSame($expected, $response);
+            });
+    }
+
+    public function testSilentCartographerWhenSpecified()
+    {
+        $this
+            ->forAll(Set\Elements::of('PWD', 'SCRIPT_FILENAME'))
+            ->then(function($location) {
+                $request = $this->createMock(ServerRequest::class);
+                $handler = $this->createMock(RequestHandler::class);
+                $handler
+                    ->expects($this->once())
+                    ->method('__invoke')
+                    ->with($request)
+                    ->willReturn($expected = $this->createMock(Response::class));
+
+                $app = Application::of(
+                    Factory::build(),
+                    new Environment(
+                        Map::of('string', 'string')
+                            ($location, __DIR__),
+                    ),
+                )
+                    ->disableSilentCartographer()
+                    ->handler(function($os, $env) use ($handler) {
+                        $this->assertNotInstanceOf(SilentCartographer::class, $os);
+
+                        return $handler;
+                    });
+
+                $response = $app->handle($request);
+
+                $this->assertSame($expected, $response);
+            });
     }
 }
