@@ -35,19 +35,22 @@ final class Application
      * @param callable(OperatingSystem, Environment): RequestHandler $handler
      * @param callable(OperatingSystem, Environment): Environment $loadDotEnv
      * @param callable(OperatingSystem, Environment): OperatingSystem $enableSilentCartographer
+     * @param callable(OperatingSystem): OperatingSystem $useResilientOperatingSystem
      */
     private function __construct(
         OperatingSystem $os,
         Environment $env,
         callable $handler,
         callable $loadDotEnv,
-        callable $enableSilentCartographer
+        callable $enableSilentCartographer,
+        callable $useResilientOperatingSystem
     ) {
         $this->os = $os;
         $this->env = $env;
         $this->handler = \Closure::fromCallable($handler);
         $this->loadDotEnv = \Closure::fromCallable($loadDotEnv);
         $this->enableSilentCartographer = \Closure::fromCallable($enableSilentCartographer);
+        $this->useResilientOperatingSystem = \Closure::fromCallable($useResilientOperatingSystem);
     }
 
     public static function of(OperatingSystem $os, Environment $env): self
@@ -75,6 +78,7 @@ final class Application
                     Url::of($location),
                 );
             },
+            static fn(OperatingSystem $os): OperatingSystem => $os,
         );
     }
 
@@ -89,6 +93,7 @@ final class Application
             $handler,
             $this->loadDotEnv,
             $this->enableSilentCartographer,
+            $this->useResilientOperatingSystem,
         );
     }
 
@@ -124,7 +129,8 @@ final class Application
 
                 return new Environment($variables);
             },
-            $this->enableSilentCartographer
+            $this->enableSilentCartographer,
+            $this->useResilientOperatingSystem,
         );
     }
 
@@ -136,12 +142,28 @@ final class Application
             $this->handler,
             $this->loadDotEnv,
             static fn(OperatingSystem $os): OperatingSystem => $os,
+            $this->useResilientOperatingSystem,
+        );
+    }
+
+    public function useResilientOperatingSystem(): self
+    {
+        return new self(
+            $this->os,
+            $this->env,
+            $this->handler,
+            $this->loadDotEnv,
+            $this->enableSilentCartographer,
+            static fn(OperatingSystem $os): OperatingSystem => new OperatingSystem\Resilient($os),
         );
     }
 
     public function handle(ServerRequest $request): Response
     {
         $os = ($this->enableSilentCartographer)($this->os, $this->env);
+        // done after the silent cartographer so that retries show up in the
+        // cartographer panel
+        $os = ($this->useResilientOperatingSystem)($os);
         $env = ($this->loadDotEnv)($os, $this->env);
         $handle = ($this->handler)($os, $env);
 

@@ -219,4 +219,30 @@ class ApplicationTest extends TestCase
                 $this->assertSame($expected, $response);
             });
     }
+
+    public function testUseResilientOperatingSystem()
+    {
+        $request = $this->createMock(ServerRequest::class);
+        $handler = $this->createMock(RequestHandler::class);
+        $handler
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($request)
+            ->willReturn($expected = $this->createMock(Response::class));
+
+        $app = Application::of(
+            Factory::build(),
+            new Environment,
+        )
+            ->disableSilentCartographer()
+            ->handler(function($os, $env) use ($handler) {
+                $this->assertNotInstanceOf(OperatingSystem\Resilient::class, $os);
+
+                return $handler;
+            });
+
+        $response = $app->handle($request);
+
+        $this->assertSame($expected, $response);
+    }
 }
