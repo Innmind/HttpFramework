@@ -245,4 +245,61 @@ class ApplicationTest extends TestCase
 
         $this->assertSame($expected, $response);
     }
+
+    public function testRequestHandlerExceptionsAreNotCaughtByDefault()
+    {
+        $request = $this->createMock(ServerRequest::class);
+        $handler = $this->createMock(RequestHandler::class);
+        $handler
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($request)
+            ->will($this->throwException($expected = new \RuntimeException));
+
+        $app = Application::of(
+            Factory::build(),
+            new Environment,
+        )
+            ->disableSilentCartographer()
+            ->handler(fn($os, $env) => $handler);
+
+        try {
+            $app->handle($request);
+
+            $this->fail('It should throw');
+        } catch (\Throwable $e) {
+            $this->assertSame($expected, $e);
+        }
+    }
+
+    public function testRequestHandlerExceptionsAreCaughtWhenDebugEnvVariableIsSet()
+    {
+        $request = $this->createMock(ServerRequest::class);
+        $request
+            ->expects($this->once())
+            ->method('protocolVersion')
+            ->willReturn(new ProtocolVersion(2, 0));
+        $handler = $this->createMock(RequestHandler::class);
+        $handler
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($request)
+            ->will($this->throwException($expected = new \RuntimeException));
+
+        $app = Application::of(
+            Factory::build(),
+            new Environment(
+                Map::of('string', 'string')
+                    ('DEBUG', '')
+            ),
+        )
+            ->disableSilentCartographer()
+            ->handler(fn($os, $env) => $handler);
+
+        $response = $app->handle($request);
+
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertSame(500, $response->statusCode()->value());
+        // No test on the content as we are in the cli and whoops won't render the page
+    }
 }

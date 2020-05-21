@@ -17,6 +17,7 @@ use Innmind\Filesystem\Name;
 use Innmind\Immutable\Map;
 use function Innmind\SilentCartographer\bootstrap as cartographer;
 use Symfony\Component\Dotenv\Dotenv;
+use Whoops\Run;
 
 final class Application
 {
@@ -166,6 +167,10 @@ final class Application
         $os = ($this->useResilientOperatingSystem)($os);
         $env = ($this->loadDotEnv)($os, $this->env);
         $handle = ($this->handler)($os, $env);
+
+        if ($env->contains('DEBUG') && \class_exists(Run::class)) {
+            $handle = new RequestHandler\Debug($handle);
+        }
 
         return $handle($request);
     }
