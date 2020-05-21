@@ -21,7 +21,8 @@
         "symfony/dotenv": "~5.0",
         "innmind/http-authentication": "~2.0",
         "innmind/rest-server": "~8.0",
-        "innmind/filesystem": "~4.0"
+        "innmind/filesystem": "~4.0",
+        "innmind/operating-system": "^2.1"
     },
     "autoload": {
         "psr-4": {
