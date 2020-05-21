@@ -15,21 +15,35 @@ composer require innmind/http-framework
 ## Usage
 
 ```php
+<?php
+# index.php
+
 use function Innmind\HttpFramework\bootstrap;
-use Innmind\HttpFramework\Controller;
+use Innmind\HttpFramework\{
+    Controller,
+    Application,
+    Main,
+};
+use Innmind\Url\Path;
 use Innmind\Immutable\Map;
 
-$framework = bootstrap();
-$handle = $framework['enforce_https'](
-    $framework['authenticate']($authenticator, $condition)(
-        $framework['router'](
-            /* instance of Innmind\Router\RequestMatcher */,
-            Map::of('string', Controller::class)
-        )
-    )
-);
+new class extends Main {
+    protected function configure(Application $app): Application
+    {
+        return $app
+            ->configAt(Path::of('/folder/containing/dotenv_file/'))
+            ->handler(static function($os, $env) {
+                $framework = bootstrap();
 
-$response = $handle(/* instance of Innmind\Http\Message\ServerRequest */);
+                return $framework['enforce_https'](
+                    $framework['authenticate']($authenticator, $condition)(
+                        $framework['router'](
+                            /* instance of Innmind\Router\RequestMatcher */,
+                            Map::of('string', Controller::class),
+                        ),
+                    ),
+                );
+            });
+    }
+}
 ```
-
-If you want to know how to build a request and send the response take a look at [`innmind/http-server`](https://github.com/Innmind/HttpServer).
