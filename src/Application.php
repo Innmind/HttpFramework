@@ -14,8 +14,16 @@ use Innmind\Url\{
     Path,
 };
 use Innmind\Filesystem\Name;
-use Innmind\Immutable\Map;
+use Innmind\Debug\{
+    Profiler,
+    Section,
+};
+use Innmind\Immutable\{
+    Map,
+    Set,
+};
 use function Innmind\SilentCartographer\bootstrap as cartographer;
+use function Innmind\Debug\bootstrap as debug;
 use Symfony\Component\Dotenv\Dotenv;
 use Whoops\Run;
 
@@ -31,12 +39,16 @@ final class Application
     private \Closure $enableSilentCartographer;
     /** @var \Closure(OperatingSystem): OperatingSystem */
     private \Closure $useResilientOperatingSystem;
+    /** @var list<class-string> */
+    private array $disabledSections;
 
     /**
+     * @psalm-suppress UndefinedDocblockClass
      * @param callable(OperatingSystem, Environment): RequestHandler $handler
      * @param callable(OperatingSystem, Environment): Environment $loadDotEnv
      * @param callable(OperatingSystem, Environment): OperatingSystem $enableSilentCartographer
      * @param callable(OperatingSystem): OperatingSystem $useResilientOperatingSystem
+     * @param list<class-string> $disabledSections
      */
     private function __construct(
         OperatingSystem $os,
@@ -44,7 +56,8 @@ final class Application
         callable $handler,
         callable $loadDotEnv,
         callable $enableSilentCartographer,
-        callable $useResilientOperatingSystem
+        callable $useResilientOperatingSystem,
+        array $disabledSections
     ) {
         $this->os = $os;
         $this->env = $env;
@@ -52,6 +65,7 @@ final class Application
         $this->loadDotEnv = \Closure::fromCallable($loadDotEnv);
         $this->enableSilentCartographer = \Closure::fromCallable($enableSilentCartographer);
         $this->useResilientOperatingSystem = \Closure::fromCallable($useResilientOperatingSystem);
+        $this->disabledSections = $disabledSections;
     }
 
     public static function of(OperatingSystem $os, Environment $env): self
@@ -80,6 +94,7 @@ final class Application
                 );
             },
             static fn(OperatingSystem $os): OperatingSystem => $os,
+            [],
         );
     }
 
@@ -95,6 +110,7 @@ final class Application
             $this->loadDotEnv,
             $this->enableSilentCartographer,
             $this->useResilientOperatingSystem,
+            $this->disabledSections,
         );
     }
 
@@ -132,6 +148,7 @@ final class Application
             },
             $this->enableSilentCartographer,
             $this->useResilientOperatingSystem,
+            $this->disabledSections,
         );
     }
 
@@ -144,6 +161,7 @@ final class Application
             $this->loadDotEnv,
             static fn(OperatingSystem $os): OperatingSystem => $os,
             $this->useResilientOperatingSystem,
+            [],
         );
     }
 
@@ -156,6 +174,27 @@ final class Application
             $this->loadDotEnv,
             $this->enableSilentCartographer,
             static fn(OperatingSystem $os): OperatingSystem => new OperatingSystem\Resilient($os),
+            $this->disabledSections,
+        );
+    }
+
+    /**
+     * @psalm-suppress UndefinedDocblockClass
+     * @param list<class-string<Section>> $sections
+     */
+    public function disableProfilerSection(string ...$sections): self
+    {
+        return new self(
+            $this->os,
+            $this->env,
+            $this->handler,
+            $this->loadDotEnv,
+            $this->enableSilentCartographer,
+            $this->useResilientOperatingSystem,
+            \array_merge(
+                $this->disabledSections,
+                $sections,
+            ),
         );
     }
 
@@ -166,7 +205,32 @@ final class Application
         // cartographer panel
         $os = ($this->useResilientOperatingSystem)($os);
         $env = ($this->loadDotEnv)($os, $this->env);
+        $wrapHandler = static fn(RequestHandler $handler): RequestHandler => $handler;
+
+        if ($env->contains('PROFILER') && \class_exists(Profiler::class)) {
+            /**
+             * Forced to add this docblock as we can't require innmind/debug in
+             * this project as debug depends on this (circular dependency)
+             *
+             * @psalm-suppress UndefinedFunction
+             * @var array{os: callable(): OperatingSystem, http: callable(RequestHandler): RequestHandler} $debug
+             */
+            $debug = debug(
+                $os,
+                Url::of($env->get('PROFILER')),
+                $env->reduce(
+                    Map::of('string', 'string'),
+                    static fn(Map $variables, string $key, string $value): Map => ($variables)($key, $value),
+                ),
+                null,
+                Set::strings(...$this->disabledSections),
+            );
+            $os = $debug['os']();
+            $wrapHandler = $debug['http'];
+        }
+
         $handle = ($this->handler)($os, $env);
+        $handle = $wrapHandler($handle);
 
         if ($env->contains('DEBUG') && \class_exists(Run::class)) {
             $handle = new RequestHandler\Debug($handle);

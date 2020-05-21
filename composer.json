@@ -45,6 +45,7 @@
         "filp/whoops": "<2.7|~3.0"
     },
     "suggest": {
-        "filp/whoops": "To ease debugging"
+        "filp/whoops": "To ease debugging",
+        "innmind/debug": "To enable a profiler"
     }
 }
