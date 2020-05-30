@@ -24,6 +24,7 @@ use Innmind\Immutable\{
 };
 use function Innmind\SilentCartographer\bootstrap as cartographer;
 use function Innmind\Debug\bootstrap as debug;
+use function Innmind\Stack\stack;
 use Symfony\Component\Dotenv\Dotenv;
 use Whoops\Run;
 
@@ -198,14 +199,18 @@ final class Application
         );
     }
 
-    public function handle(ServerRequest $request): Response
+    public function build(): RequestHandler
     {
         $os = ($this->enableSilentCartographer)($this->os, $this->env);
         // done after the silent cartographer so that retries show up in the
         // cartographer panel
         $os = ($this->useResilientOperatingSystem)($os);
         $env = ($this->loadDotEnv)($os, $this->env);
-        $wrapHandler = static fn(RequestHandler $handler): RequestHandler => $handler;
+        $middlewares = [static fn(RequestHandler $_): RequestHandler => $_];
+
+        if ($env->contains('DEBUG') && \class_exists(Run::class)) {
+            $middlewares[] = static fn(RequestHandler $_): RequestHandler => new RequestHandler\Debug($_);
+        }
 
         if ($env->contains('PROFILER') && \class_exists(Profiler::class)) {
             /**
@@ -226,16 +231,16 @@ final class Application
                 Set::strings(...$this->disabledSections),
             );
             $os = $debug['os']();
-            $wrapHandler = $debug['http'];
+            $middlewares[] = $debug['http'];
         }
 
-        $handle = ($this->handler)($os, $env);
-        $handle = $wrapHandler($handle);
+        return stack(...$middlewares)(
+            ($this->handler)($os, $env),
+        );
+    }
 
-        if ($env->contains('DEBUG') && \class_exists(Run::class)) {
-            $handle = new RequestHandler\Debug($handle);
-        }
-
-        return $handle($request);
+    public function handle(ServerRequest $request): Response
+    {
+        return $this->build()($request);
     }
 }

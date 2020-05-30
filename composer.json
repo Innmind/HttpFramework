@@ -22,7 +22,8 @@
         "innmind/rest-server": "~8.0",
         "innmind/operating-system": "^2.1",
         "innmind/silent-cartographer": "^2.0",
-        "innmind/http-server": "^2.0"
+        "innmind/http-server": "^2.0",
+        "innmind/stack": "^1.1"
     },
     "autoload": {
         "psr-4": {
