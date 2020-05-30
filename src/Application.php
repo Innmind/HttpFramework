@@ -199,7 +199,7 @@ final class Application
         );
     }
 
-    public function handle(ServerRequest $request): Response
+    public function build(): RequestHandler
     {
         $os = ($this->enableSilentCartographer)($this->os, $this->env);
         // done after the silent cartographer so that retries show up in the
@@ -234,10 +234,13 @@ final class Application
             $middlewares[] = $debug['http'];
         }
 
-        $handle = stack(...$middlewares)(
+        return stack(...$middlewares)(
             ($this->handler)($os, $env),
         );
+    }
 
-        return $handle($request);
+    public function handle(ServerRequest $request): Response
+    {
+        return $this->build()($request);
     }
 }

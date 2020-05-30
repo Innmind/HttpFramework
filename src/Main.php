@@ -13,16 +13,18 @@ use Innmind\OperatingSystem\OperatingSystem;
 
 abstract class Main extends Base
 {
-    private Application $app;
+    private RequestHandler $handle;
 
     protected function preload(OperatingSystem $os, Environment $env): void
     {
-        $this->app = $this->configure(Application::of($os, $env));
+        $this->handle = $this
+            ->configure(Application::of($os, $env))
+            ->build();
     }
 
     protected function main(ServerRequest $request): Response
     {
-        return $this->app->handle($request);
+        return ($this->handle)($request);
     }
 
     abstract protected function configure(Application $app): Application;
