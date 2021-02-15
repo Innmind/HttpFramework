@@ -24,6 +24,7 @@ final class EnforceHttps implements RequestHandler
     public function __invoke(ServerRequest $request): Response
     {
         if ($request->url()->scheme()->toString() !== 'https') {
+            /** @psalm-suppress InvalidArgument */
             return new Response\Response(
                 $code = StatusCode::of('PERMANENTLY_REDIRECT'),
                 $code->associatedReasonPhrase(),

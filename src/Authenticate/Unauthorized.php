@@ -16,6 +16,7 @@ final class Unauthorized implements Fallback
 {
     public function __invoke(ServerRequest $request, \Exception $e): Response
     {
+        /** @psalm-suppress InvalidArgument */
         return new Response\Response(
             $code = StatusCode::of('UNAUTHORIZED'),
             $code->associatedReasonPhrase(),

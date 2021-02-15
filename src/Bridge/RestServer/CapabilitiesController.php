@@ -21,9 +21,6 @@ final class CapabilitiesController implements Controller
         $this->handle = $handle;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __invoke(
         ServerRequest $request,
         Route $route,

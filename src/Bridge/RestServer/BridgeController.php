@@ -34,9 +34,6 @@ final class BridgeController implements Controller
         $this->definitions = $definitions;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function __invoke(
         ServerRequest $request,
         Route $route,

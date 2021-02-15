@@ -61,7 +61,7 @@ function bootstrap(): array
             $fallbacks = Map::of('string', Fallback::class)
                 (NoAuthenticationProvided::class, new Unauthorized)
                 (MalformedAuthorizationHeaderException::class, new MalformedAuthorizationHeader)
-                ->merge($fallbacks ?? Map::of('string', Fallback::class));
+                    ->merge($fallbacks ?? Map::of('string', Fallback::class));
 
             return static function(RequestHandler $handler) use ($authenticator, $condition, $fallbacks): RequestHandler {
                 return new Authenticate($handler, $authenticator, $condition, $fallbacks);
@@ -70,7 +70,6 @@ function bootstrap(): array
         'bridge' => [
             'rest_server' => static function(Map $gateways, Directory $directory, Route $capabilities, Prefix $prefix = null): array {
                 /** @var Map<string, Gateway> $gateways */
-
                 $rest = rest($gateways, $directory, null, null, $prefix);
 
                 $routesToDefinitions = Bridge\RestServer\Routes::from($rest['routes']);
