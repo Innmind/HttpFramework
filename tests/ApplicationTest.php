@@ -63,7 +63,7 @@ class ApplicationTest extends TestCase
             new Environment,
         )
             ->disableSilentCartographer()
-            ->handler(fn() => $handler);
+            ->handler(static fn() => $handler);
 
         $response = $app->handle($request);
 
@@ -261,7 +261,7 @@ class ApplicationTest extends TestCase
             new Environment,
         )
             ->disableSilentCartographer()
-            ->handler(fn($os, $env) => $handler);
+            ->handler(static fn($os, $env) => $handler);
 
         try {
             $app->handle($request);
@@ -294,7 +294,7 @@ class ApplicationTest extends TestCase
             ),
         )
             ->disableSilentCartographer()
-            ->handler(fn($os, $env) => $handler);
+            ->handler(static fn($os, $env) => $handler);
 
         $response = $app->handle($request);
 

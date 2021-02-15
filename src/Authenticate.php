@@ -50,7 +50,7 @@ final class Authenticate implements RequestHandler
             try {
                 ($this->authenticate)($request);
             } catch (\Exception $e) {
-                $class = get_class($e);
+                $class = \get_class($e);
 
                 if (!$this->fallbacks->contains($class)) {
                     throw $e;
